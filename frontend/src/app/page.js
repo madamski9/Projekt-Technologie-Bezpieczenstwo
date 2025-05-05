@@ -1,5 +1,5 @@
 "use client"
-import "./globals.css"
+// import "./globals.css"
 import fetchApi from "./components/fetchApi"
 import { useEffect, useState } from "react"
 

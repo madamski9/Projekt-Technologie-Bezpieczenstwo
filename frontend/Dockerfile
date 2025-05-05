@@ -1,4 +1,4 @@
-FROM node:23-slim
+FROM --platform=linux/amd64 node:23-slim
 WORKDIR /app
 COPY package*.json ./
 RUN npm install

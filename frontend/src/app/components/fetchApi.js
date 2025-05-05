@@ -12,6 +12,7 @@ const fetchApi = async () => {
             headers: {
                 'Authorization': `Bearer ${token}`, // keycloak JWT token
             },
+            credentials: 'include',
         })
         if (!res.ok) {
             throw new Error(`API Error: ${res.statusText}`);
