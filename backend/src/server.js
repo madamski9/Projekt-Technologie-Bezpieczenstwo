@@ -8,7 +8,7 @@ const PORT = process.env.PORT || "3000"
 app.use(checkJwt())
 app.use(cookieParser())
 app.use(cors({
-    origin: 'http://localhost:3000', 
+    origin: 'http://localhost:3001', 
     credentials: true,
 }))
 app.use((req, res, next) => {
@@ -24,32 +24,39 @@ app.get('/protected', checkJwt(), (req, res) => {
     res.send('Protected endpoint')
 })
 
-app.post('/login', async (req, res) => {
-    const response = await fetch('http://keycloak:8080/realms/korepetycje/protocol/openid-connect/token', {
-        method: 'POST',
-        body: new URLSearchParams({
-            'client_id': `${process.env.KEYCLOAK_CLIENT_ID}`,
-            'client_secret': `${process.env.KEYCLOAK_CLIENT_SECRET}`,
-            'grant_type': 'password',
-            'username': req.body.username,
-            'password': req.body.password,
-        }),
-    })
+app.post('/auth/callback', express.json(), async (req, res) => {
+    const code = req.body.code
+    if (!code) return res.status(400).json({ message: 'Code not provided' })
 
-    if (response.ok) {
-        const { access_token } = await response.json()
-
-        res.cookie('auth_token', access_token, {
-            httpOnly: true,      
-            secure: process.env.NODE_ENV === 'production', 
-            sameSite: 'None',     
-            maxAge: 3600000,      
+    try {
+        const response = await fetch('http://keycloak:8080/realms/korepetycje/protocol/openid-connect/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                grant_type: 'authorization_code',
+                code,
+                client_id: 'frontend-client',
+                redirect_uri: 'http://localhost:3001/callback'
+            })
         })
 
-        return res.json({ message: 'Login successful' })
-    } else {
-        return res.status(401).json({ message: 'Invalid credentials' })
+        const tokenData = await response.json()
+        if (tokenData.access_token) {
+            res.cookie('auth_token', tokenData.access_token, {
+                httpOnly: true,
+                maxAge: 3600000,
+                sameSite: 'Lax'
+            })
+            res.json({ message: 'Login successful' })
+        } else {
+            res.status(400).json({ message: 'Token exchange failed', tokenData })
+        }
+    } catch (err) {
+        res.status(500).json({ message: 'Internal error', error: err.toString() })
     }
 })
+
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
