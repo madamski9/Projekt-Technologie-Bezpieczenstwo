@@ -50,6 +50,8 @@ app.post('/auth/callback', express.json(), async (req, res) => {
         const tokenData = await response.json()
         if (tokenData.access_token) {
             const decoded = jwt.decode(tokenData.access_token)
+            console.log("decoded: ", decoded)
+            console.log("token data: ", tokenData)
         
             const userInfo = {
               sub: decoded.sub,
