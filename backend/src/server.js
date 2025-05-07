@@ -2,13 +2,15 @@ import express from 'express'
 import checkJwt from './auth.js'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
+import dotenv from 'dotenv'
 
+dotenv.config()
 const app = express()
-const PORT = process.env.PORT || "3000"
+const PORT = process.env.PORT 
 app.use(checkJwt())
 app.use(cookieParser())
 app.use(cors({
-    origin: 'http://localhost:3001', 
+    origin: process.env.FRONTEND_URL, 
     credentials: true,
 }))
 app.use((req, res, next) => {
@@ -20,7 +22,7 @@ app.get('/api/hello', (req, res) => {
     res.json({ message: "Hello from backend" })
 })
 
-app.get('/protected', checkJwt(), (req, res) => {
+app.get('/protected', (req, res) => {
     res.send('Protected endpoint')
 })
 
@@ -29,7 +31,7 @@ app.post('/auth/callback', express.json(), async (req, res) => {
     if (!code) return res.status(400).json({ message: 'Code not provided' })
 
     try {
-        const response = await fetch('http://keycloak:8080/realms/korepetycje/protocol/openid-connect/token', {
+        const response = await fetch(process.env.KEYCLOAK_TOKEN, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -38,7 +40,7 @@ app.post('/auth/callback', express.json(), async (req, res) => {
                 grant_type: 'authorization_code',
                 code,
                 client_id: 'frontend-client',
-                redirect_uri: 'http://localhost:3001/callback'
+                redirect_uri: process.env.KEYCLOAK_REDIRECT_URI,
             })
         })
 
@@ -59,7 +61,7 @@ app.post('/auth/callback', express.json(), async (req, res) => {
 })
 
 app.get('/auth/google', (req, res) => {
-    const redirectUri = `https://accounts.google.com/o/oauth2/v2/auth?` +
+    const redirectUri = process.env.GOOGLE_AUTH_URI +
       new URLSearchParams({
         client_id: process.env.GOOGLE_CLIENT_ID,
         redirect_uri: process.env.GOOGLE_REDIRECT_URI,
@@ -77,7 +79,7 @@ app.post('/auth/google/callback', express.json(), async (req, res) => {
     if (!code) return res.status(400).json({ error: 'Code missing' })
 
     try {
-        const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+        const tokenRes = await fetch(process.env.GOOGLE_TOKEN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
@@ -91,7 +93,7 @@ app.post('/auth/google/callback', express.json(), async (req, res) => {
 
         const tokenData = await tokenRes.json()
 
-        const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        const userRes = await fetch(process.env.GOOGLE_USER_INFO_URL, {
         headers: {
             Authorization: `Bearer ${tokenData.access_token}`
         }

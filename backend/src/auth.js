@@ -1,6 +1,8 @@
 import { expressjwt } from 'express-jwt'
 import jwksRsa from 'jwks-rsa'
+import dotenv from 'dotenv'
 
+dotenv.config()
 const checkJwt = () => {
     return expressjwt({
         secret: jwksRsa.expressJwtSecret({
