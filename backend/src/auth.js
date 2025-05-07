@@ -9,11 +9,11 @@ const checkJwt = () => {
             cache: true,
             rateLimit: true,
             jwksRequestsPerMinute: 5,
-            jwksUri: 'http://keycloak:8080/realms/korepetycje/protocol/openid-connect/certs',
+            jwksUri: process.env.KEYCLOAK_CERTS,
         }),
 
         audience: 'backend-client',
-        issuer: 'http://keycloak:8080/realms/korepetycje',
+        issuer: process.env.KEYCLOAK_REALM_URI,
         algorithms: ['RS256'],
         credentialsRequired: false, 
     })

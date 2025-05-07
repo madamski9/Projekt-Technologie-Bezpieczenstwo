@@ -3,6 +3,8 @@ import checkJwt from './auth.js'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
+import saveUser from './saveUser.js'
+import jwt from 'jsonwebtoken'
 
 dotenv.config()
 const app = express()
@@ -41,22 +43,34 @@ app.post('/auth/callback', express.json(), async (req, res) => {
                 code,
                 client_id: 'frontend-client',
                 redirect_uri: process.env.KEYCLOAK_REDIRECT_URI,
+                scope: 'openid email profile',
             })
         })
 
         const tokenData = await response.json()
         if (tokenData.access_token) {
+            const decoded = jwt.decode(tokenData.access_token)
+        
+            const userInfo = {
+              sub: decoded.sub,
+              email: decoded.email,
+              name: decoded.name,
+              picture: decoded.picture || null 
+            }
+        
+            await saveUser(userInfo)
+        
             res.cookie('auth_token', tokenData.access_token, {
                 httpOnly: true,
                 maxAge: 3600000,
                 sameSite: 'Lax'
             })
-            res.json({ message: 'Login successful' })
+            res.json({ message: 'Login successful', user: userInfo })
         } else {
-            res.status(400).json({ message: 'Token exchange failed', tokenData })
+            res.status(400).json({ message: 'token exchange failed', tokenData })
         }
     } catch (err) {
-        res.status(500).json({ message: 'Internal error', error: err.toString() })
+        res.status(500).json({ message: 'internal error', error: err.toString() })
     }
 })
 
@@ -100,6 +114,7 @@ app.post('/auth/google/callback', express.json(), async (req, res) => {
         })
 
         const userInfo = await userRes.json()
+        await saveUser(userInfo)
         res.json({ message: "Logged in via Google!", userInfo })
     } catch (err) {
         console.error("Error during token exchange:", err)
