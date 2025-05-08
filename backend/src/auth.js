@@ -19,4 +19,4 @@ const checkJwt = () => {
     })
 }
 
-export default checkJwt;
+export default checkJwt

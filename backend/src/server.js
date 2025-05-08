@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import saveUser from './saveUser.js'
 import jwt from 'jsonwebtoken'
+import requireRole from './requireRole.js'
 
 dotenv.config()
 const app = express()
@@ -89,6 +90,8 @@ app.get('/auth/google', (req, res) => {
   
     res.redirect(redirectUri)
   })
+
+console.log("google uri: ", process.env.GOOGLE_REDIRECT_URI)
   
 app.post('/auth/google/callback', express.json(), async (req, res) => {
     const { code } = req.body
@@ -108,6 +111,7 @@ app.post('/auth/google/callback', express.json(), async (req, res) => {
         })
 
         const tokenData = await tokenRes.json()
+        console.log("token: ", tokenData.access_token)
 
         const userRes = await fetch(process.env.GOOGLE_USER_INFO_URL, {
         headers: {
@@ -116,6 +120,7 @@ app.post('/auth/google/callback', express.json(), async (req, res) => {
         })
 
         const userInfo = await userRes.json()
+        console.log("userInfo: ", userInfo)
         await saveUser(userInfo)
         res.json({ message: "Logged in via Google!", userInfo })
     } catch (err) {
@@ -124,6 +129,8 @@ app.post('/auth/google/callback', express.json(), async (req, res) => {
     }
 })
   
-  
+app.get('/api/korepetytor', requireRole('korepetytor'), (req, res) => {
+    res.send('Hello tutor')
+})
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))

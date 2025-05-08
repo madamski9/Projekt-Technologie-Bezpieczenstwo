@@ -6,8 +6,10 @@ RUN npm install
 COPY . .
 
 # etap uruchamiania
-FROM node:23-slim
+FROM node:23-slim AS production
 WORKDIR /app
-COPY --from=builder /app /app
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/src ./src
+RUN npm install --only=production
 EXPOSE 3000
 CMD ["node", "src/server.js"]
