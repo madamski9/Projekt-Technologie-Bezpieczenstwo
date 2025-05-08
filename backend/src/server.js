@@ -94,8 +94,6 @@ app.get('/auth/google', (req, res) => {
   
     res.redirect(redirectUri)
   })
-
-console.log("google uri: ", process.env.GOOGLE_REDIRECT_URI)
   
 app.post('/auth/google/callback', express.json(), async (req, res) => {
     const { code } = req.body
@@ -141,13 +139,31 @@ app.get('/api/dashboard', requireRoles(['korepetytor', 'uczen']), (req, res) => 
     res.json({ message: 'You have access to the dashboard' })
 })
 
-app.post('/api/logout', (req, res) => {
-    res.clearCookie('auth_token', { 
-        httpOnly: true,
-        sameSite: 'Lax',
+app.post('/auth/logout', express.json(), async (req, res) => {
+    const refreshToken = req.body.refresh_token
+    if (!refreshToken) return res.status(400).json({ message: 'No refresh token provided' })
+  
+    try {
+      const response = await fetch(`${process.env.KEYCLOAK_LOGOUT}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: process.env.KEYCLOAK_CLIENT_ID,
+          client_secret: process.env.KEYCLOAK_CLIENT_SECRET,
+          refresh_token: refreshToken
+        })
       })
-      res.json({ message: 'Logged out successfully' })
+      res.clearCookie('auth_token')
+      if (response.ok) {
+        return res.status(200).json({ message: 'Logged out successfully' })
+      } else {
+        res.status(500).json({ message: 'error during logging out' })
+      }
+    } catch (err) {
+      return res.status(500).json({ message: 'Logout failed', error: err.toString() })
+    }
 })
+  
   
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
