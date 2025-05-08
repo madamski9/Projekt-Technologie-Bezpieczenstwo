@@ -1,16 +1,16 @@
 import express from 'express'
-import checkJwt from './auth.js'
+import checkJwt from './middlewares/auth.js'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
-import saveUser from './saveUser.js'
+import saveUser from './utils/saveUser.js'
 import jwt from 'jsonwebtoken'
-import requireRole from './requireRole.js'
+import requireRoles from './utils/requireRole.js'
 
 dotenv.config()
 const app = express()
 const PORT = process.env.PORT 
-app.use(checkJwt())
+app.use('/api', checkJwt())
 app.use(cookieParser())
 app.use(cors({
     origin: process.env.FRONTEND_URL, 
@@ -23,6 +23,10 @@ app.use((req, res, next) => {
 
 app.get('/api/hello', (req, res) => {
     res.json({ message: "Hello from backend" })
+})
+
+app.get('/health', (req, res) => {
+    res.status(200).send('OK');
 })
 
 app.get('/protected', (req, res) => {
@@ -129,8 +133,21 @@ app.post('/auth/google/callback', express.json(), async (req, res) => {
     }
 })
   
-app.get('/api/korepetytor', requireRole('korepetytor'), (req, res) => {
+app.get('/api/korepetytor', requireRoles('korepetytor'), (req, res) => {
     res.send('Hello tutor')
 })
+
+app.get('/api/dashboard', requireRoles(['korepetytor', 'uczen']), (req, res) => {
+    res.json({ message: 'You have access to the dashboard' })
+})
+
+app.post('/api/logout', (req, res) => {
+    res.clearCookie('auth_token', { 
+        httpOnly: true,
+        sameSite: 'Lax',
+      })
+      res.json({ message: 'Logged out successfully' })
+})
+  
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
