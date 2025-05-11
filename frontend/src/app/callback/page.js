@@ -8,6 +8,7 @@ const Callback = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const code = urlParams.get("code")
+    console.log("env: ", process.env.NEXT_PUBLIC_API_URL)
 
     if (code) {
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/callback`, {

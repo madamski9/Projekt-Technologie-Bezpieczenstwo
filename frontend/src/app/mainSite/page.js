@@ -9,7 +9,7 @@ const mainSite = () => {
   const handleClick = async (e) => {
     e.preventDefault()
     try {
-      const res = await fetch('http://localhost:3000/api/dashboard', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard`, {
         method: 'GET',
         headers: { "Content-type": "application/json"},
         credentials: 'include',
