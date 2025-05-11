@@ -31,7 +31,7 @@ const mainSite = () => {
   const handleLogout = async (e) => {
     e.preventDefault()
     try {
-      const res = await fetch('http://localhost:3000/auth/logout', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include', 
         headers: {
