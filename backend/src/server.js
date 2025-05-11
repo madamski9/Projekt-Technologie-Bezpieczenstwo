@@ -46,7 +46,7 @@ app.post('/auth/callback', express.json(), async (req, res) => {
             body: new URLSearchParams({
                 grant_type: 'authorization_code',
                 code,
-                client_id: 'frontend-client',
+                client_id: 'ssr-client',
                 redirect_uri: process.env.KEYCLOAK_REDIRECT_URI,
                 scope: 'openid email profile',
             })

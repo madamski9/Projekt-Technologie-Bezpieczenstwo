@@ -1,6 +1,6 @@
-"use client"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import cookies from 'js-cookie' 
 
 const GoogleCallback = () => {
   const router = useRouter()
@@ -21,6 +21,9 @@ const GoogleCallback = () => {
       .then(res => res.json())
       .then(data => {
         console.log("Token exchanged:", data)
+
+        cookies.set('access_token', data.access_token, { expires: 1, secure: true, sameSite: 'Strict' })
+        cookies.set('refresh_token', data.refresh_token, { expires: 1, secure: true, sameSite: 'Strict' })
         router.push("./mainSite") 
       })
       .catch(err => {

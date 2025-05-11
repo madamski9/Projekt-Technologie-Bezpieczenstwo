@@ -46,7 +46,29 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
+  ssr-client:
+    build:
+      context: ./ssr-client
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: development
+    ports:
+      - "3002:3000"  
+    networks:
+      - korepetycje-net
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend
+      - keycloak
+    command: ["npm", "run", "dev"]
+    volumes:
+      - ./ssr-client:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
   db:
     image: postgres:15
     restart: always
