@@ -1,3 +1,5 @@
+import "./globals.css"
+
 const Home = () => {
   return (
     <div style={{ maxWidth: 400, margin: 'auto', padding: 20 }}>
