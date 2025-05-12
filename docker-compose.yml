@@ -24,9 +24,9 @@ services:
       timeout: 10s
       retries: 3
 
-  frontend:
+  spa-client:
     build:
-      context: ./frontend
+      context: ./spa-client
       dockerfile: Dockerfile
       args:
         NODE_ENV: development
@@ -40,7 +40,7 @@ services:
       - backend
     command: ["npm", "run", "dev"]
     volumes:
-      - ./frontend:/app
+      - ./spa-client:/app
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s
