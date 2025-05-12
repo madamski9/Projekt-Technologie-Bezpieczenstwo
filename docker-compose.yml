@@ -69,6 +69,17 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+  b2b-client:
+    build: ./b2b-client
+    ports:
+      - "3003:3003"
+    env_file:
+      - ./b2b-client/.env
+    networks:
+      - korepetycje-net
+    depends_on:
+      - backend
+      - keycloak
   db:
     image: postgres:15
     restart: always
