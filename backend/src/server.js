@@ -6,6 +6,7 @@ import dotenv from 'dotenv'
 import saveUser from './utils/saveUser.js'
 import jwt from 'jsonwebtoken'
 import requireRoles from './utils/requireRole.js'
+import makeApiRequest from '../b2b-client/apiRequests.js'
 
 dotenv.config()
 const app = express()
@@ -47,6 +48,7 @@ app.post('/auth/callback', express.json(), async (req, res) => {
                 grant_type: 'authorization_code',
                 code,
                 client_id: 'ssr-client',
+                client_secret: process.env.KEYCLOAK_CLIENT_SECRET_SSR,
                 redirect_uri: process.env.KEYCLOAK_REDIRECT_URI,
                 scope: 'openid email profile',
             })
@@ -163,7 +165,14 @@ app.post('/auth/logout', express.json(), async (req, res) => {
       return res.status(500).json({ message: 'Logout failed', error: err.toString() })
     }
 })
-  
-  
 
+app.get('/data', async (req, res) => {
+    const data = await makeApiRequest(`${process.env.FRONTEND_URL}/callback`)
+    if (data) {
+        res.json(data)
+    } else {
+        res.status(500).send('Error fetching data from API')
+    }
+})
+  
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))

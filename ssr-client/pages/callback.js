@@ -14,7 +14,7 @@ const Callback = () => {
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/callback`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         credentials: 'include',
         body: JSON.stringify({ code }),
