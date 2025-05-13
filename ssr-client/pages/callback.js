@@ -24,7 +24,7 @@ const Callback = () => {
         console.log("Token exchanged:", data)
         cookies.set('access_token', data.access_token, { expires: 1, secure: true, sameSite: 'Strict' })
         cookies.set('refresh_token', data.refresh_token, { expires: 1, secure: true, sameSite: 'Strict' })
-        router.push("./mainSite") 
+        router.push("./dashboard") 
       })
       .catch(err => {
         console.error("Token exchange failed", err)

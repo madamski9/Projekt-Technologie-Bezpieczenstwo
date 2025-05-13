@@ -1,8 +1,9 @@
 import { useState } from "react"
 
-const mainSite = () => {
+const Dashboard = () => {
   const [hasRole, setHasRole] = useState(false)
   const [message, setMessage] = useState([])
+  const [roles, setRoles] = useState([])
 
   const handleClick = async (e) => {
     e.preventDefault()
@@ -21,12 +22,14 @@ const mainSite = () => {
       console.log("data from fetching dashboard: ", data)
       if (data) {
         setMessage(data.message)
+        setRoles(data.roles)
       }
       return data
     } catch (e) {
       console.error("error during getting status from /api/dashboard: ", e)
     }
   }
+  console.log("role: ", roles)
 
   const handleLogout = async (e) => {
     e.preventDefault()
@@ -50,7 +53,12 @@ const mainSite = () => {
 
   return (
     <div style={{ maxWidth: 400, margin: 'auto', padding: 20 }}>
-      <div>mainSite</div>
+      <div>Dashboard, your roles - 
+        {roles
+          .filter(rola => rola === "uczen" || rola === "korepetytor")
+          .map(rola => { return <p>{rola}</p> })
+        }
+        </div>
       <div
         onClick={(e) => handleClick(e)}
         style={{ backgroundColor: "red"}}
@@ -75,5 +83,5 @@ const mainSite = () => {
   )
 }
 
-export default mainSite
+export default Dashboard
 

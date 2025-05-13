@@ -137,7 +137,10 @@ app.get('/api/korepetytor', requireRoles('korepetytor'), (req, res) => {
 })
 
 app.get('/api/dashboard', requireRoles(['korepetytor', 'uczen']), (req, res) => {
-    res.json({ message: 'You have access to the dashboard' })
+    res.json({ 
+        message: `Welcome, ${req.user.username}`, 
+        roles: req.user.roles 
+    })
 })
 
 app.post('/auth/logout', express.json(), async (req, res) => {

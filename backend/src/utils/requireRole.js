@@ -17,6 +17,10 @@ const requireRoles = (roles = []) => {
       const hasRole = roles.some(role => userRoles.includes(role))
       console.log("hasRole: ", hasRole)
       if (hasRole) {
+        req.user = {
+          username: decoded?.preferred_username || decoded?.sub,
+          roles: userRoles,
+        }
         return next()
       } else {
         return res.status(403).json({ message: 'Forbidden, insufficient role' })
