@@ -31,25 +31,11 @@ const Dashboard = () => {
   }
   console.log("role: ", roles)
 
-  const handleLogout = async (e) => {
-    e.preventDefault()
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include', 
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      })
-      if (res.ok) {
-        window.location.href = '/'
-      } else {
-        console.error('Logout failed')
-      }
-    } catch (e) {
-      console.error("error during logging out: ", e)
-    }
+  const handleLogout = async () => {
+    return window.location.href = 'http://localhost:3000/auth/logout'
   }
+
+
 
   return (
     <div style={{ maxWidth: 400, margin: 'auto', padding: 20 }}>

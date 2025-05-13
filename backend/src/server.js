@@ -13,7 +13,7 @@ const PORT = process.env.PORT
 app.use('/api', checkJwt())
 app.use(cookieParser())
 app.use(cors({
-    origin: process.env.FRONTEND_URL, 
+    origin: [process.env.FRONTEND_URL, "http://localhost:3001"], 
     credentials: true,
 }))
 app.use((req, res, next) => {
@@ -54,7 +54,10 @@ app.post('/auth/callback', express.json(), async (req, res) => {
         })
 
         const tokenData = await response.json()
-        if (tokenData.access_token) {
+        console.log("token data: ", tokenData)
+        console.log("id_token: ", tokenData.id_token)
+
+        if (tokenData.access_token && tokenData.id_token) {
             const decoded = jwt.decode(tokenData.access_token)
             console.log("decoded: ", decoded)
             console.log("token data: ", tokenData)
@@ -69,6 +72,11 @@ app.post('/auth/callback', express.json(), async (req, res) => {
             await saveUser(userInfo)
         
             res.cookie('auth_token', tokenData.access_token, {
+                httpOnly: true,
+                maxAge: 3600000,
+                sameSite: 'Lax'
+            })
+            res.cookie('id_token', tokenData.id_token, {
                 httpOnly: true,
                 maxAge: 3600000,
                 sameSite: 'Lax'
@@ -143,29 +151,17 @@ app.get('/api/dashboard', requireRoles(['korepetytor', 'uczen']), (req, res) => 
     })
 })
 
-app.post('/auth/logout', express.json(), async (req, res) => {
-    const refreshToken = req.body.refresh_token
-    if (!refreshToken) return res.status(400).json({ message: 'No refresh token provided' })
-  
-    try {
-      const response = await fetch(`${process.env.KEYCLOAK_LOGOUT}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          client_id: process.env.KEYCLOAK_CLIENT_ID,
-          client_secret: process.env.KEYCLOAK_CLIENT_SECRET,
-          refresh_token: refreshToken
-        })
-      })
-      res.clearCookie('auth_token')
-      if (response.ok) {
-        return res.status(200).json({ message: 'Logged out successfully' })
-      } else {
-        res.status(500).json({ message: 'error during logging out' })
-      }
-    } catch (err) {
-      return res.status(500).json({ message: 'Logout failed', error: err.toString() })
-    }
+app.get('/auth/logout', (req, res) => {
+  const idToken = req.cookies.id_token
+
+  res.clearCookie('auth_token', { httpOnly: true, sameSite: 'Lax' })
+  res.clearCookie('id_token', { httpOnly: true, sameSite: 'Lax' })
+
+  const postLogoutRedirect = encodeURIComponent('http://localhost:3001')
+  const logoutURL = `http://localhost:8080/realms/korepetycje/protocol/openid-connect/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${postLogoutRedirect}`
+
+  return res.redirect(logoutURL)
 })
+
   
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
