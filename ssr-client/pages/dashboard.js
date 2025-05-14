@@ -32,10 +32,8 @@ const Dashboard = () => {
   console.log("role: ", roles)
 
   const handleLogout = async () => {
-    return window.location.href = 'http://localhost:3000/auth/logout'
+    return window.location.href = process.env.NEXT_PUBLIC_LOGOUT_URL
   }
-
-
 
   return (
     <div style={{ maxWidth: 400, margin: 'auto', padding: 20 }}>

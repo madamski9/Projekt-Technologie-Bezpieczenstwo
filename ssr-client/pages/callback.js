@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import cookies from 'js-cookie'  
+import cookies from 'js-cookie'
 
 const Callback = () => {
   const router = useRouter()
@@ -22,9 +22,19 @@ const Callback = () => {
       .then(res => res.json())
       .then(data => {
         console.log("Token exchanged:", data)
+
         cookies.set('access_token', data.access_token, { expires: 1, secure: true, sameSite: 'Strict' })
         cookies.set('refresh_token', data.refresh_token, { expires: 1, secure: true, sameSite: 'Strict' })
-        router.push("./dashboard") 
+        
+        const roles = data.roles || []
+        console.log("role: ", roles)
+        if (roles.includes("korepetytor")) {
+          router.push("/dashboard/korepetytor")
+        } else if (roles.includes("uczen")) {
+          router.push("/dashboard/uczen")
+        } else {
+          router.push("dashboard")
+        }
       })
       .catch(err => {
         console.error("Token exchange failed", err)

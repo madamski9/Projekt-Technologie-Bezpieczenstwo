@@ -81,7 +81,14 @@ app.post('/auth/callback', express.json(), async (req, res) => {
                 maxAge: 3600000,
                 sameSite: 'Lax'
             })
-            res.json({ message: 'Login successful', user: userInfo })
+            const roles = decoded.realm_access?.roles || []
+            res.json({ 
+                message: 'Login successful', 
+                user: userInfo, 
+                roles,
+                access_token: tokenData.access_token,
+                refresh_token: tokenData.refresh_token
+            })
         } else {
             res.status(400).json({ message: 'token exchange failed', tokenData })
         }

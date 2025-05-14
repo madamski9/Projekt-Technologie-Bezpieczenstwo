@@ -2,10 +2,10 @@ const Login = () => {
   return (
     <div style={{ maxWidth: 400, margin: 'auto', padding: 20 }}>
       <h2>Login</h2>
-      <a href="http://localhost:8080/realms/korepetycje/protocol/openid-connect/auth?client_id=ssr-client&redirect_uri=http://localhost:3002/callback&response_type=code&scope=openid">
+      <a href={process.env.NEXT_PUBLIC_KEYCLOAK_LOGIN_URL}>
         <button>Zaloguj przez Keycloak</button>
       </a>
-      <a href="http://localhost:3000/auth/google">
+      <a href={process.env.NEXT_PUBLIC_GOOGLE_LOGIN_URL}>
         <button>Loguj się przez Google</button>
       </a>
     </div>
