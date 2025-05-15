@@ -1,4 +1,5 @@
 import GoogleConnectButton from "../components/GoogleConnectButton"
+import GoogleCalendarEvents from "../components/GoogleCalendarEvents"
 
 const KorepetytorDashboard = () => {
     const handleLogout = async () => {
@@ -9,12 +10,13 @@ const KorepetytorDashboard = () => {
         <div style={{ padding: 40 }}>
             <h1>Panel Korepetytora</h1>
             <p>Tu widzisz swoich uczniów, nadchodzące lekcje, i możesz zarządzać swoim grafikiem.</p>
+            <GoogleConnectButton />
+            <GoogleCalendarEvents />
             <button
                 onClick={(e) => handleLogout(e)}
             >
                 Logout
             </button>
-            <GoogleConnectButton />
         </div>
     )
 }

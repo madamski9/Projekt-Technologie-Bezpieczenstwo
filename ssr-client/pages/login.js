@@ -5,9 +5,6 @@ const Login = () => {
       <a href={process.env.NEXT_PUBLIC_KEYCLOAK_LOGIN_URL}>
         <button>Zaloguj przez Keycloak</button>
       </a>
-      <a href={process.env.NEXT_PUBLIC_GOOGLE_LOGIN_URL}>
-        <button>Loguj się przez Google</button>
-      </a>
     </div>
   )
 }

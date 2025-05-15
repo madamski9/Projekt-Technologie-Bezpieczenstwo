@@ -19,14 +19,14 @@ const CalendarEvents = () => {
 
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/google/calendar/events`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         })
 
         if (!res.ok) {
-          const errData = await res.json()
-          throw new Error(errData.error || JSON.stringify(errData) || 'blad api')
+            const errData = await res.json()
+            throw new Error(errData.error || JSON.stringify(errData) || 'blad api')
         }
 
         const data = await res.json()
@@ -46,22 +46,49 @@ const CalendarEvents = () => {
   if (error) return <p style={{ color: 'red' }}>Błąd: {error}</p>
 
   return (
-    <div>
-      <h2>Twoje wydarzenia z Google Kalendarza:</h2>
-      {events.length === 0 ? (
-        <p>Brak nadchodzących wydarzeń</p>
-      ) : (
-        <ul>
-          {events.map(event => (
-            <li key={event.id}>
-              <strong>{event.summary}</strong><br />
-              {event.start?.dateTime || event.start?.date} - {event.end?.dateTime || event.end?.date}
-            </li>
-          ))}
-        </ul>
-      )}
+    <div style={{ maxWidth: '100%', overflowX: 'auto' }}>
+        <h2>Twoje wydarzenia z Google Kalendarza:</h2>
+        {events.length === 0 ? (
+            <p>Brak nadchodzących wydarzeń</p>
+        ) : (
+            <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: '600px' }}>
+            <thead>
+                <tr>
+                    <th style={thStyle}>Nazwa</th>
+                    <th style={thStyle}>Data i godzina startu</th>
+                    <th style={thStyle}>Data i godzina zakończenia</th>
+                    <th style={thStyle}>Opis</th>
+                </tr>
+            </thead>
+            <tbody>
+                {events.map(event => (
+                    <tr key={event.id} style={{ borderBottom: '1px solid #ddd' }}>
+                        <td style={tdStyle}>{event.summary || 'Brak nazwy'}</td>
+                        <td style={tdStyle}>{event.start?.dateTime || event.start?.date || 'Brak'}</td>
+                        <td style={tdStyle}>{event.end?.dateTime || event.end?.date || 'Brak'}</td>
+                        <td style={tdStyle}>{event.description || '-'}</td>
+                    </tr>
+                ))}
+            </tbody>
+            </table>
+        )}
     </div>
   )
+}
+
+const thStyle = {
+    border: '1px solid #ddd',
+    padding: '8px',
+    backgroundColor: '#f2f2f2',
+    textAlign: 'left',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis'
+}
+
+const tdStyle = {
+    border: '1px solid #ddd',
+    padding: '8px',
 }
 
 export default CalendarEvents
