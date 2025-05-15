@@ -1,5 +1,5 @@
 import React from 'react'
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/router'
 
 const LandingPage = () => {
   const router = useRouter()
@@ -15,7 +15,7 @@ const LandingPage = () => {
         Zaloguj
       </button>
     </div>
-  );
-};
+  )
+}
 
-export default LandingPage;
+export default LandingPage

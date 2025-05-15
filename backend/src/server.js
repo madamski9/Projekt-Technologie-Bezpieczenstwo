@@ -259,7 +259,7 @@ app.get('/auth/logout', (req, res) => {
   res.clearCookie('auth_token', { httpOnly: true, sameSite: 'Lax' })
   res.clearCookie('id_token', { httpOnly: true, sameSite: 'Lax' })
 
-  const postLogoutRedirect = encodeURIComponent('http://localhost:3001')
+  const postLogoutRedirect = encodeURIComponent('http://localhost:3002')
   const logoutURL = `http://localhost:8080/realms/korepetycje/protocol/openid-connect/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${postLogoutRedirect}`
 
   return res.redirect(logoutURL)

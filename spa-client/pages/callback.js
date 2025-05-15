@@ -32,8 +32,10 @@ const Callback = () => {
           router.push("/dashboard/korepetytor")
         } else if (roles.includes("uczen")) {
           router.push("/dashboard/uczen")
+        } else if (roles.includes("admin")) {
+          window.location.href = "http://localhost:3001"
         } else {
-          router.push("dashboard")
+          router.push("/dashboard")
         }
       })
       .catch(err => {
