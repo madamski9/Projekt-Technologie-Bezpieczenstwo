@@ -176,9 +176,10 @@ app.get('/google/calendar/events', async (req, res) => {
   if (!authHeader) return res.status(401).json({ error: 'Brak nagłówka Authorization' })
 
   const token = authHeader.split(' ')[1]
+  const calendarId = "24e4503631de91fbae635719c39955f1b96785b5c42bc2eb2fcdf76f1e7b8533@group.calendar.google.com"
 
   try {
-    const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
