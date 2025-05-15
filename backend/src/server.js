@@ -6,6 +6,7 @@ import dotenv from 'dotenv'
 import saveUser from './utils/saveUser.js'
 import jwt from 'jsonwebtoken'
 import requireRoles from './utils/requireRole.js'
+import cookie from 'cookie'
 
 dotenv.config()
 const app = express()
@@ -139,12 +140,60 @@ app.post('/auth/google/callback', express.json(), async (req, res) => {
 
         const userInfo = await userRes.json()
         console.log("userInfo: ", userInfo)
+
         await saveUser(userInfo)
-        res.json({ message: "Logged in via Google!", userInfo })
+        const cookies = cookie.parse(req.headers.cookie || "")
+        const jwtToken = cookies["auth_token"] 
+
+        const googleJwtToken = tokenData.access_token  
+
+        res.cookie('google_token', googleJwtToken, {
+            httpOnly: false,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 60 * 60 * 1000, 
+            sameSite: 'lax'
+        })
+
+        if (!jwtToken) {
+            return res.status(401).json({ message: "brak tokena JWT w ciasteczkach" })
+        }
+        const decoded = jwt.decode(jwtToken)
+        const roles = decoded?.realm_access?.roles || []
+
+        return res.json({
+            message: "Logged via Google!",
+            userInfo: userInfo,
+            roles: roles, 
+        })
     } catch (err) {
         console.error("Error during token exchange:", err)
         res.status(500).json({ error: 'OAuth flow failed' })
     }
+})
+
+app.get('/google/calendar/events', async (req, res) => {
+  const authHeader = req.headers.authorization
+  if (!authHeader) return res.status(401).json({ error: 'Brak nagłówka Authorization' })
+
+  const token = authHeader.split(' ')[1]
+
+  try {
+    const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      return res.status(response.status).json(errorData)
+    }
+
+    const events = await response.json()
+    res.json(events)
+  } catch (err) {
+    res.status(500).json({ error: err.toString() })
+  }
 })
   
 app.get('/api/korepetytor', requireRoles('korepetytor'), (req, res) => {

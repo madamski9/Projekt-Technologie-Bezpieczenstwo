@@ -1,3 +1,6 @@
+import GoogleConnectButton from "../components/GoogleConnectButton"
+import GoogleCalendarEvents from "../components/GoogleCalendarEvents"
+
 const UczenDashboard = () => {
     const handleLogout = async () => {
         return window.location.href = process.env.NEXT_PUBLIC_LOGOUT_URL
@@ -7,6 +10,8 @@ const UczenDashboard = () => {
         <div style={{ padding: 40 }}>
             <h1>Panel Ucznia</h1>
             <p>Tu znajdziesz swoich korepetytorów, zaplanowane lekcje i materiały do nauki.</p>
+            <GoogleConnectButton />
+            <GoogleCalendarEvents />
             <button
                 onClick={(e) => handleLogout(e)}
             >

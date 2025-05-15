@@ -24,7 +24,14 @@ const GoogleCallback = () => {
 
         cookies.set('access_token', data.access_token, { expires: 1, secure: true, sameSite: 'Strict' })
         cookies.set('refresh_token', data.refresh_token, { expires: 1, secure: true, sameSite: 'Strict' })
-        router.push("./dashboard") 
+
+        if (data.roles?.includes("uczen")) {
+          router.push("/dashboard/uczen")
+        } else if (data.roles?.includes("korepetytor")) {
+          router.push("/dashboard/nauczyciel")
+        } else {
+          router.push("/dashboard")
+        }
       })
       .catch(err => {
         console.error("Token exchange failed", err)
@@ -32,7 +39,7 @@ const GoogleCallback = () => {
     }
   }, [router])
 
-  return <p>Logowanie trwa...</p>
+  return <p>Łączenie z Google Calendar...</p>
 }
 
 export default GoogleCallback
