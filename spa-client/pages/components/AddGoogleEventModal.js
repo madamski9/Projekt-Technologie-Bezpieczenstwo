@@ -8,7 +8,7 @@ const AddEventModal = () => {
     const [end, setEnd] = useState('')
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        e.preventDefault()
 
         const startISO = new Date(start).toISOString()
         const endISO = new Date(end).toISOString()
@@ -18,32 +18,36 @@ const AddEventModal = () => {
             return
         }
 
-        console.log("endISO: ", endISO)
-        console.log("startISO: ", startISO)
-
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/google/calendar/add-event`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${cookies.get('google_token')}`
-            },
-            body: JSON.stringify({
-                summary: title,
-                start: startISO,
-                end: endISO
+        try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/google/calendar/add-event`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${cookies.get('google_token')}`
+                },
+                body: JSON.stringify({
+                    summary: title,
+                    start: startISO,
+                    end: endISO
+                })
             })
-        })
 
-        if (!response.ok) {
-            const err = await response.json()
-            console.error('blad dodawania wydarzenia: ', err)
-            return
+            if (!response.ok) {
+                const err = await response.json()
+                console.error('blad dodawania wydarzenia: ', err)
+                return
+            }
+            const newEvent = await response.json()
+
+            setTitle('')
+            setStart('')
+            setEnd('')
+            setIsOpen(false)
+
+            if (onEventAdded) onEventAdded(newEvent)
+        } catch (e) {
+            console.error("error during fetching calendar add event: ", e)
         }
-
-        setTitle('')
-        setStart('')
-        setEnd('')
-        setIsOpen(false)
     }
 
 
