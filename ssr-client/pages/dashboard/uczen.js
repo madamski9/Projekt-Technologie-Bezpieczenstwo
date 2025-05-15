@@ -1,5 +1,6 @@
 import GoogleConnectButton from "../components/GoogleConnectButton"
 import GoogleCalendarEvents from "../components/GoogleCalendarEvents"
+import AddGoogleEventModal from "../components/AddGoogleEventModal"
 
 const UczenDashboard = () => {
     const handleLogout = async () => {
@@ -12,6 +13,7 @@ const UczenDashboard = () => {
             <p>Tu znajdziesz swoich korepetytorów, zaplanowane lekcje i materiały do nauki.</p>
             <GoogleConnectButton />
             <GoogleCalendarEvents />
+            <AddGoogleEventModal />
             <button
                 onClick={(e) => handleLogout(e)}
             >

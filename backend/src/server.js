@@ -196,6 +196,51 @@ app.get('/google/calendar/events', async (req, res) => {
     res.status(500).json({ error: err.toString() })
   }
 })
+
+app.post('/google/calendar/add-event', express.json(), async (req, res) => {
+    const authHeader = req.headers.authorization
+    const token = authHeader?.split(' ')[1]
+
+    if (!token) {
+        return res.status(401).json({ error: 'brak tokenu google' })
+    }
+
+    const { summary, start, end } = req.body
+    if (!summary || !start || !end) {
+        return res.status(400).json({ error: 'brakuje pol: summary, start, end' })
+    }
+
+    const calendarId = '24e4503631de91fbae635719c39955f1b96785b5c42bc2eb2fcdf76f1e7b8533@group.calendar.google.com'
+
+    const eventData = {
+        summary,
+        start: { dateTime: start },
+        end: { dateTime: end }
+    }
+
+    try {
+        const googleRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eventData)
+        })
+
+        const result = await googleRes.json()
+
+        if (!googleRes.ok) {
+            return res.status(googleRes.status).json(result)
+        }
+
+        return res.status(200).json({ message: 'wydarzenie dodane', event: result })
+    } catch (err) {
+        console.error('blad dodawania wydarzenia:', err)
+        return res.status(500).json({ error: 'wewnetrzny blad serwera' })
+    }
+})
+
   
 app.get('/api/korepetytor', requireRoles('korepetytor'), (req, res) => {
     res.send('Hello tutor')

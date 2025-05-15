@@ -46,7 +46,7 @@ const CalendarEvents = () => {
   if (error) return <p style={{ color: 'red' }}>Błąd: {error}</p>
 
   return (
-    <div style={{ maxWidth: '100%', overflowX: 'auto' }}>
+    <div style={{ maxWidth: '100%', overflowX: 'auto', marginBottom: 20 }}>
         <h2>Twoje wydarzenia z Google Kalendarza:</h2>
         {events.length === 0 ? (
             <p>Brak nadchodzących wydarzeń</p>
