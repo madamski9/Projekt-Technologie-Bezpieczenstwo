@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import cookies from 'js-cookie'
 
-const AddEventModal = () => {
+const AddEventModal = ({ onEventAdded }) => {
     const [isOpen, setIsOpen] = useState(false)
     const [title, setTitle] = useState('')
     const [start, setStart] = useState('')
@@ -37,14 +37,13 @@ const AddEventModal = () => {
                 console.error('blad dodawania wydarzenia: ', err)
                 return
             }
-            const newEvent = await response.json()
+
+            if (onEventAdded) onEventAdded()
 
             setTitle('')
             setStart('')
             setEnd('')
             setIsOpen(false)
-
-            if (onEventAdded) onEventAdded(newEvent)
         } catch (e) {
             console.error("error during fetching calendar add event: ", e)
         }
@@ -99,11 +98,6 @@ const AddEventModal = () => {
             )}
         </div>
     )
-}
-
-const toISOStringWithTZ = (localDatetime) => {
-  const date = new Date(localDatetime)
-  return date.toISOString()
 }
 
 

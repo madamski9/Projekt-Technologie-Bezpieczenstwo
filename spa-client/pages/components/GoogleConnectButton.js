@@ -2,17 +2,18 @@ const GoogleConnectButton = () => {
   const handleConnect = () => {
     const params = new URLSearchParams({
       client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-      redirect_uri: 'http://localhost:3002/google-callback',
+      redirect_uri: process.env.NEXT_PUBLIC_GOOGLE_CALLBACK_URL,
       response_type: 'code',
-      scope: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email',
+      scope: `${process.env.NEXT_PUBLIC_GOOGLE_AUTH_CALENDAR} ${process.env.NEXT_PUBLIC_GOOGLE_USER_MAIL}`,
       access_type: 'offline',
       prompt: 'consent',
     });
 
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`
+    window.location.href = process.env.NEXT_PUBLIC_GOOGLE_AUTH_PARAMS
   }
 
   return <button onClick={handleConnect}>Połącz z Google Kalendarzem</button>
 }
 
-export default GoogleConnectButton;
+export default GoogleConnectButton
+
