@@ -2,6 +2,7 @@ body {
   font-family: Arial, sans-serif;
   background-color: #f0f0f0;
   color: #333;
+  margin: 0;
 }
 
 button {
@@ -91,5 +92,31 @@ button[type="submit"] {
 }
 
 button[type="submit"]:hover {
+  background-color: #0056b3;
+}
+
+.nav {
+  background-color: #1976d2;
+  padding: 15px 30px;
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  gap: 50px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-list li {
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  transition: color 0.2s, background-color 0.2s;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.nav-list li:hover {
   background-color: #0056b3;
 }

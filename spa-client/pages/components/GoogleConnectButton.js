@@ -7,9 +7,9 @@ const GoogleConnectButton = () => {
       scope: `${process.env.NEXT_PUBLIC_GOOGLE_AUTH_CALENDAR} ${process.env.NEXT_PUBLIC_GOOGLE_USER_MAIL}`,
       access_type: 'offline',
       prompt: 'consent',
-    });
+    })
 
-    window.location.href = process.env.NEXT_PUBLIC_GOOGLE_AUTH_PARAMS
+    window.location.href = `${process.env.NEXT_PUBLIC_GOOGLE_AUTH_PARAMS}?${params.toString()}`
   }
 
   return <button onClick={handleConnect}>Połącz z Google Kalendarzem</button>
