@@ -7,16 +7,17 @@ import saveUser from './utils/saveUser.js'
 import jwt from 'jsonwebtoken'
 import requireRoles from './utils/requireRole.js'
 import cookie from 'cookie'
+import getKeycloakAdminClient from './utils/getKeycloakAdminClient.js'
 
 dotenv.config()
 const app = express()
 const PORT = process.env.PORT 
-app.use('/api', checkJwt())
-app.use(cookieParser())
 app.use(cors({
     origin: [process.env.FRONTEND_URL, "http://localhost:3001"], 
     credentials: true,
 }))
+app.use('/api', checkJwt())
+app.use(cookieParser())
 app.use((req, res, next) => {
     console.log('Request Headers:', req.headers)
     next()
@@ -73,7 +74,7 @@ app.post('/auth/callback', express.json(), async (req, res) => {
             await saveUser(userInfo)
         
             res.cookie('auth_token', tokenData.access_token, {
-                httpOnly: true,
+                httpOnly: false,
                 maxAge: 3600000,
                 sameSite: 'Lax'
             })
@@ -263,6 +264,24 @@ app.get('/auth/logout', (req, res) => {
   const logoutURL = `http://localhost:8080/realms/korepetycje/protocol/openid-connect/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${postLogoutRedirect}`
 
   return res.redirect(logoutURL)
+})
+
+app.get('/api/admin/users', requireRoles(['admin']), async (req, res) => {
+    try {
+        const kcAdminClient = await getKeycloakAdminClient()
+        const users = await kcAdminClient.users.find()
+
+        const filteredUsers = users.map(user => ({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+        }))
+
+        res.status(200).json(filteredUsers)
+    } catch (err) {
+        console.error('Błąd podczas pobierania użytkowników z Keycloak:', err)
+        res.status(500).json({ message: 'Wystąpił błąd serwera.' })
+    }
 })
 
   

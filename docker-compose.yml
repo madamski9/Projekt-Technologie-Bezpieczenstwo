@@ -130,7 +130,8 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.1
-    command: start-dev
+    command:
+      - start-dev
     environment:
       - KEYCLOAK_ADMIN=${KEYCLOAK_USER}
       - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_PASSWORD}
