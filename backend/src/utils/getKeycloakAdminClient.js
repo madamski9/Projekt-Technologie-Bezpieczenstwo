@@ -13,6 +13,10 @@ const getKeycloakAdminClient = async () => {
     clientId: "admin-cli",
   })
 
+  kcAdminClient.setConfig({
+    realmName: "korepetycje",
+  })
+
   return kcAdminClient
 }
 

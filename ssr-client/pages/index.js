@@ -4,7 +4,6 @@ import cookies from 'js-cookie'
 
 const LandingPage = () => {
     const [users, setUsers] = useState([])
-    const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
 
     const handleLogout = async (e) => {
@@ -29,12 +28,15 @@ const LandingPage = () => {
         }
 
         const data = await res.json()
-        console.log(data)
+        console.log("users: ", data)
+        setUsers(data)
     }
 
     useEffect(() => {
         fetchUsers()
     }, [])
+
+    console.log("users2: ", users)
 
     return (
         <div style={{ padding: 40, textAlign: 'center' }}>
@@ -44,10 +46,9 @@ const LandingPage = () => {
                 Logout
             </button>
 
-            {loading && <p>Ładowanie użytkowników...</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
 
-            {!loading && !error && (
+            {!error && (
                 <div style={{ maxWidth: 600, margin: '0 auto' }}>
                     <h2>Użytkownicy Keycloaka:</h2>
                     <ul style={{ listStyle: 'none', padding: 0 }}>
