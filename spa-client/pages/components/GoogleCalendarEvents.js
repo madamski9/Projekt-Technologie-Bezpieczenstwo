@@ -1,6 +1,8 @@
 "use client"
 import { useEffect, useState } from "react"
 import cookies from 'js-cookie'
+import { Trash2 } from 'lucide-react'
+import formatDateTime from "../utils/formatDateTime"
 
 const CalendarEvents = ({ refreshTrigger }) => {
   const [events, setEvents] = useState([])
@@ -9,9 +11,8 @@ const CalendarEvents = ({ refreshTrigger }) => {
 
   const fetchEvents = async () => {
     const token = cookies.get('google_token')
-    console.log("google token: ", token)
     if (!token) {
-      setError('Brak tokenu Google w cookies')
+      setError('Brak tokenu Google w cookies - połącz się z Google Kalendarzem')
       setLoading(false)
       return
     }
@@ -25,23 +26,52 @@ const CalendarEvents = ({ refreshTrigger }) => {
 
       if (!res.ok) {
           const errData = await res.json()
-          throw new Error(errData.error || JSON.stringify(errData) || 'blad api')
+          throw new Error(errData.error || JSON.stringify(errData) || 'błąd API')
       }
 
       const data = await res.json()
-      console.log("data items calendar: ", data.items)
       setEvents(data.items || [])
     } catch (err) {
-      console.error("blad pobierania wydarzen", err)
-      setError(err.message || 'nieznany blad')
+      setError(err.message || 'Nieznany błąd')
     } finally {
       setLoading(false)
     }
   }
+
   useEffect(() => {
     fetchEvents()
   }, [refreshTrigger])
 
+  const handleDelete = async (eventId) => {
+    const confirmed = window.confirm("Czy na pewno chcesz usunąć to wydarzenie?")
+    if (!confirmed) return
+
+    const token = cookies.get('google_token')
+    if (!token) {
+      alert('Brak tokenu Google')
+      return
+    }
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/google/calendar/delete-event/${eventId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        alert(`Błąd usuwania: ${err.error || 'Nieznany błąd'}`)
+        return
+      }
+
+      fetchEvents()
+    } catch (err) {
+      console.error(err)
+      alert('Wewnętrzny błąd serwera')
+    }
+  }
 
   if (loading) return <p>Ładowanie wydarzeń z Google...</p>
   if (error) return <p style={{ color: 'red' }}>Błąd: {error}</p>
@@ -49,28 +79,38 @@ const CalendarEvents = ({ refreshTrigger }) => {
   return (
     <div style={{ maxWidth: '100%', overflowX: 'auto', marginBottom: 20 }}>
         <h2>Twoje wydarzenia z Google Kalendarza:</h2>
+
         {events.length === 0 ? (
             <p>Brak nadchodzących wydarzeń</p>
         ) : (
             <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: '600px' }}>
-            <thead>
+              <thead>
                 <tr>
                     <th style={thStyle}>Nazwa</th>
                     <th style={thStyle}>Data i godzina startu</th>
                     <th style={thStyle}>Data i godzina zakończenia</th>
                     <th style={thStyle}>Opis</th>
                 </tr>
-            </thead>
-            <tbody>
+              </thead>
+              <tbody>
                 {events.map(event => (
-                    <tr key={event.id} style={{ borderBottom: '1px solid #ddd' }}>
+                    <tr key={event.id}>
                         <td style={tdStyle}>{event.summary || 'Brak nazwy'}</td>
-                        <td style={tdStyle}>{event.start?.dateTime || event.start?.date || 'Brak'}</td>
-                        <td style={tdStyle}>{event.end?.dateTime || event.end?.date || 'Brak'}</td>
+                        <td style={tdStyle}>{formatDateTime(event.start?.dateTime || event.start?.date)}</td>
+                        <td style={tdStyle}>{formatDateTime(event.end?.dateTime || event.end?.date)}</td>
                         <td style={tdStyle}>{event.description || '-'}</td>
+                        <td style={{ textAlign: 'left' }}>
+                          <button 
+                            style={{ background: 'none', border: 'none', cursor: 'pointer' }} 
+                            onClick={() => handleDelete(event.id)}
+                            title="Usuń wydarzenie"
+                          >
+                            <Trash2 color="black" size={23}/>
+                          </button>
+                        </td>
                     </tr>
                 ))}
-            </tbody>
+              </tbody>
             </table>
         )}
     </div>
@@ -90,6 +130,7 @@ const thStyle = {
 const tdStyle = {
     border: '1px solid #ddd',
     padding: '8px',
+    borderBottom: '1px solid #ddd'
 }
 
 export default CalendarEvents

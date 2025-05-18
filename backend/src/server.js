@@ -207,7 +207,7 @@ app.post('/google/calendar/add-event', express.json(), async (req, res) => {
         return res.status(401).json({ error: 'brak tokenu google' })
     }
 
-    const { summary, start, end } = req.body
+    const { summary, start, end, description } = req.body
     if (!summary || !start || !end) {
         return res.status(400).json({ error: 'brakuje pol: summary, start, end' })
     }
@@ -216,6 +216,7 @@ app.post('/google/calendar/add-event', express.json(), async (req, res) => {
 
     const eventData = {
         summary,
+        description,
         start: { dateTime: start },
         end: { dateTime: end }
     }
@@ -243,6 +244,41 @@ app.post('/google/calendar/add-event', express.json(), async (req, res) => {
     }
 })
 
+app.delete('/google/calendar/delete-event/:eventId', async (req, res) => {
+  const authHeader = req.headers.authorization
+  const token = authHeader?.split(' ')[1]
+
+  if (!token) {
+    return res.status(401).json({ error: 'brak tokenu google' })
+  }
+
+  const { eventId } = req.params
+
+  if (!eventId) {
+    return res.status(400).json({ error: 'brak eventId w parametrach' })
+  }
+
+  const calendarId = '24e4503631de91fbae635719c39955f1b96785b5c42bc2eb2fcdf76f1e7b8533@group.calendar.google.com'
+
+  try {
+    const googleRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    if (googleRes.status === 204) { 
+      return res.status(200).json({ message: 'wydarzenie usunięte' })
+    } else {
+      const result = await googleRes.json()
+      return res.status(googleRes.status).json(result)
+    }
+  } catch (err) {
+    console.error('blad usuwania wydarzenia:', err)
+    return res.status(500).json({ error: 'wewnetrzny blad serwera' })
+  }
+})
   
 app.get('/api/korepetytor', requireRoles('korepetytor'), (req, res) => {
     res.send('Hello tutor')

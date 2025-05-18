@@ -5,6 +5,7 @@ const AddEventModal = ({ onEventAdded }) => {
     const [isOpen, setIsOpen] = useState(false)
     const [title, setTitle] = useState('')
     const [start, setStart] = useState('')
+    const [description, setDescription] = useState('')
     const [end, setEnd] = useState('')
 
     const handleSubmit = async (e) => {
@@ -27,6 +28,7 @@ const AddEventModal = ({ onEventAdded }) => {
                 },
                 body: JSON.stringify({
                     summary: title,
+                    description: description,
                     start: startISO,
                     end: endISO
                 })
@@ -41,6 +43,7 @@ const AddEventModal = ({ onEventAdded }) => {
             if (onEventAdded) onEventAdded()
 
             setTitle('')
+            setDescription('')
             setStart('')
             setEnd('')
             setIsOpen(false)
@@ -70,6 +73,15 @@ const AddEventModal = ({ onEventAdded }) => {
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
+                            required
+                        />
+                    </label>
+                    <label>
+                        Opis:
+                        <input
+                            type="text"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
                             required
                         />
                     </label>
