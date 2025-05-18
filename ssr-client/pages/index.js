@@ -1,11 +1,13 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import cookies from 'js-cookie'
+import UserRolesManager from './components/UserModal'
 
 const LandingPage = () => {
     const [users, setUsers] = useState([])
     const [error, setError] = useState(null)
     const [selectedUser, setSelectedUser] = useState(null)
+    const [isLoading, setIsLoading] = useState(true)
 
     const handleLogout = async (e) => {
         e.preventDefault()
@@ -15,7 +17,7 @@ const LandingPage = () => {
     const fetchUsers = async () => {
         const token = cookies.get('auth_token')
         try {
-            const res = await fetch("http://localhost:3000/api/admin/users", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users`, {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -29,6 +31,8 @@ const LandingPage = () => {
         } catch (err) {
             console.error(err)
             setError("Błąd pobierania użytkowników")
+        } finally {
+            setIsLoading(false)
         }
     }
 
@@ -46,7 +50,7 @@ const LandingPage = () => {
 
             {error && <p style={{ color: "red" }}>{error}</p>}
 
-            {!error && (
+            {isLoading ? ( <p>Ładowanie...</p> ) : !error && (
                 <div className="userList">
                     <h2>Użytkownicy Keycloaka:</h2>
                     <ul style={{ listStyle: 'none', padding: 0 }}>
@@ -65,17 +69,7 @@ const LandingPage = () => {
             )}
 
             {selectedUser && (
-                <div className="modalOverlay">
-                    <div className="modalContent">
-                        <button className="closeButton" onClick={() => setSelectedUser(null)}>
-                            &times;
-                        </button>
-                        <h3>Szczegóły użytkownika</h3>
-                        <p><strong>ID:</strong> {selectedUser.id}</p>
-                        <p><strong>Nazwa użytkownika:</strong> {selectedUser.username}</p>
-                        <p><strong>Email:</strong> {selectedUser.email}</p>
-                    </div>
-                </div>
+                <UserRolesManager user={selectedUser} onClose={() => setSelectedUser(null)} />
             )}
         </div>
     )

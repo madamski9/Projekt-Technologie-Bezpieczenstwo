@@ -15,6 +15,7 @@ const PORT = process.env.PORT
 app.use(cors({
     origin: [process.env.FRONTEND_URL, "http://localhost:3001"], 
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }))
 app.use('/api', checkJwt())
 app.use(cookieParser())
@@ -283,6 +284,65 @@ app.get('/api/admin/users', requireRoles(['admin']), async (req, res) => {
         res.status(500).json({ message: 'Wystąpił błąd serwera.' })
     }
 })
+
+app.get('/api/admin/roles', requireRoles(['admin']), async (req, res) => {
+  try {
+    const kcAdminClient = await getKeycloakAdminClient()
+    const roles = await kcAdminClient.roles.find()
+    res.json(roles)
+  } catch (err) {
+    console.error('Błąd pobierania ról:', err)
+    res.status(500).json({ message: 'Błąd serwera' })
+  }
+})
+
+app.get('/api/admin/users/:id/roles', requireRoles(['admin']), async (req, res) => {
+    try {
+        const kcAdminClient = await getKeycloakAdminClient()
+        const userId = req.params.id
+
+        const userRoles = await kcAdminClient.users.listRealmRoleMappings({ id: userId })
+
+        res.status(200).json(userRoles.map(role => ({
+            id: role.id,
+            name: role.name,
+            description: role.description
+        })))
+    } catch (err) {
+        console.error("Błąd podczas pobierania ról użytkownika:", err)
+        res.status(500).json({ message: 'Wystąpił błąd podczas pobierania ról użytkownika.' })
+    }
+})
+
+
+app.put('/api/admin/users/:id/roles', express.json(), requireRoles(['admin']), async (req, res) => {
+  const userId = req.params.id
+  const roles = req.body.roles
+
+  try {
+    const kcAdminClient = await getKeycloakAdminClient()
+    const currentRoles = await kcAdminClient.users.listRealmRoleMappings({ id: userId })
+    const allRoles = await kcAdminClient.roles.find()
+    const rolesToAssign = allRoles.filter(role => roles.includes(role.name))
+    const rolesToRemove = currentRoles.filter(role => !roles.includes(role.name))
+
+    await kcAdminClient.users.delRealmRoleMappings({
+      id: userId,
+      roles: rolesToRemove
+    })
+
+    await kcAdminClient.users.addRealmRoleMappings({
+      id: userId,
+      roles: rolesToAssign
+    })
+
+    res.status(200).json({ message: 'Zaktualizowano role użytkownika' })
+  } catch (err) {
+    console.error('Błąd aktualizacji ról:', err)
+    res.status(500).json({ message: 'Błąd serwera' })
+  }
+})
+
 
   
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))

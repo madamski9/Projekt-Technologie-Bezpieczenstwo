@@ -72,3 +72,30 @@
   cursor: pointer;
   color: #888;
 }
+
+.roleList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.roleList label {
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.saveButton {
+  margin-top: 20px;
+  background-color: #1976d2;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.saveButton:hover {
+  background-color: #0056b3;
+}
