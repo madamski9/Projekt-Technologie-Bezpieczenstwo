@@ -52,7 +52,6 @@ const AddEventModal = ({ onEventAdded }) => {
         }
     }
 
-
     return (
         <div>
             <button className="add-button" onClick={() => setIsOpen(true)}>

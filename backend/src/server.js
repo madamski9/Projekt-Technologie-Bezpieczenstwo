@@ -294,8 +294,10 @@ app.get('/api/dashboard', requireRoles(['korepetytor', 'uczen']), (req, res) => 
 app.get('/auth/logout', (req, res) => {
   const idToken = req.cookies.id_token
 
-  res.clearCookie('auth_token', { httpOnly: true, sameSite: 'Lax' })
+  res.clearCookie('auth_token', { httpOnly: false, sameSite: 'Lax' })
   res.clearCookie('id_token', { httpOnly: true, sameSite: 'Lax' })
+  res.clearCookie('user_role', { httpOnly: true, sameSite: 'Lax' })
+  res.clearCookie('google_token', { httpOnly: false, sameSite: 'Lax' })
 
   const postLogoutRedirect = encodeURIComponent('http://localhost:3002')
   const logoutURL = `http://localhost:8080/realms/korepetycje/protocol/openid-connect/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${postLogoutRedirect}`

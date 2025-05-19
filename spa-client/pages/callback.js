@@ -8,7 +8,6 @@ const Callback = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const code = urlParams.get("code")
-    console.log("env: ", process.env.NEXT_PUBLIC_API_URL)
 
     if (code) {
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/callback`, {
@@ -22,15 +21,16 @@ const Callback = () => {
       .then(res => res.json())
       .then(data => {
         console.log("Token exchanged:", data)
-
-        cookies.set('access_token', data.access_token, { expires: 1, secure: true, sameSite: 'Strict' })
-        cookies.set('refresh_token', data.refresh_token, { expires: 1, secure: true, sameSite: 'Strict' })
         
         const roles = data.roles || []
         console.log("role: ", roles)
         if (roles.includes("korepetytor")) {
+          "use client"
+          cookies.set('user_role', 'korepetytor', { expires: 1, secure: false, sameSite: 'Lax' })
           router.push("/dashboard/korepetytor")
         } else if (roles.includes("uczen")) {
+          "use client"
+          cookies.set('user_role', 'uczen', { expires: 1, secure: false, sameSite: 'Lax' })
           router.push("/dashboard/uczen")
         } else if (roles.includes("admin")) {
           window.location.href = "http://localhost:3001"

@@ -11,7 +11,8 @@ const KorepetytorDashboard = () => {
             <h1>Panel Korepetytora</h1>
             <p>Tu widzisz swoich uczniów, nadchodzące lekcje, i możesz zarządzać swoim grafikiem.</p>
             <GoogleConnectButton />
-            <GoogleCalendarEvents />
+            <GoogleCalendarEvents refreshTrigger={refresh} />
+            <AddGoogleEventModal onEventAdded={handleRefreshEvents} />
             <button
                 onClick={(e) => handleLogout(e)}
             >

@@ -17,6 +17,9 @@ const UczenDashboard = () => {
         <div style={{ padding: 40 }}>
             <h1>Panel Ucznia</h1>
             <p>Tu znajdziesz swoich korepetytorów, zaplanowane lekcje i materiały do nauki.</p>
+            <GoogleConnectButton />
+            <GoogleCalendarEvents refreshTrigger={refresh} />
+            <AddGoogleEventModal onEventAdded={handleRefreshEvents} />
             <button
                 onClick={(e) => handleLogout(e)}
             >
