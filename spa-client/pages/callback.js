@@ -44,7 +44,12 @@ const Callback = () => {
     }
   }, [router])
 
-  return <p>Logowanie trwa...</p>
+  return (
+    <div className="loading-spinner">
+        <div className="spinner"></div>
+        <p>Ładowanie danych...</p>
+    </div>
+  )
 }
 
 export default Callback

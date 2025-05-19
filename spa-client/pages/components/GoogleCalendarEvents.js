@@ -12,7 +12,7 @@ const CalendarEvents = ({ refreshTrigger }) => {
   const fetchEvents = async () => {
     const token = cookies.get('google_token')
     if (!token) {
-      setError('Brak tokenu Google w cookies - połącz się z Google Kalendarzem')
+      setError('Połącz się z Google Kalendarzem!')
       setLoading(false)
       return
     }
@@ -73,8 +73,13 @@ const CalendarEvents = ({ refreshTrigger }) => {
     }
   }
 
-  if (loading) return <p>Ładowanie wydarzeń z Google...</p>
-  if (error) return <p style={{ color: 'red' }}>Błąd: {error}</p>
+  if (loading) return (
+    <div className="loading-spinner">
+        <div className="spinner"></div>
+        <p>Ładowanie wydarzeń z Google...</p>
+    </div>
+  )
+  if (error) return <p style={{ color: 'red' }}>{error}</p>
 
   return (
     <div style={{ maxWidth: '100%', overflowX: 'auto', marginBottom: 20 }}>

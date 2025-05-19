@@ -39,7 +39,12 @@ const GoogleCallback = () => {
     }
   }, [router])
 
-  return <p>Łączenie z Google Calendar...</p>
+  return (
+    <div className="loading-spinner">
+        <div className="spinner"></div>
+        <p>Łączenie z Google Calendar...</p>
+    </div>
+  )
 }
 
 export default GoogleCallback

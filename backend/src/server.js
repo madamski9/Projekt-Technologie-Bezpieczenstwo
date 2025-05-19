@@ -381,6 +381,41 @@ app.put('/api/admin/users/:id/roles', express.json(), requireRoles(['admin']), a
   }
 })
 
+app.post('/api/admin/users', express.json(), requireRoles(['admin']), async (req, res) => {
+  const { username, email, password, roles = [] } = req.body
+
+  if (!username || !email || !password) {
+    return res.status(400).json({ message: 'Brakuje wymaganych pól: username, email, password' })
+  }
+
+  try {
+    const kcAdminClient = await getKeycloakAdminClient()
+    const createdUser = await kcAdminClient.users.create({
+      username,
+      email,
+      enabled: true,
+      emailVerified: true,
+      credentials: [{ type: 'password', value: password, temporary: false }]
+    })
+
+    const allRoles = await kcAdminClient.roles.find()
+    const rolesToAssign = allRoles.filter(role => roles.includes(role.name))
+
+    if (rolesToAssign.length > 0) {
+      await kcAdminClient.users.addRealmRoleMappings({
+        id: createdUser.id,
+        roles: rolesToAssign
+      })
+    }
+
+    res.status(201).json({ message: 'Użytkownik został utworzony', userId: createdUser.id })
+  } catch (err) {
+    console.error('Błąd podczas tworzenia użytkownika:', err)
+    res.status(500).json({ message: 'Błąd serwera podczas tworzenia użytkownika' })
+  }
+})
+
+
 
   
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
