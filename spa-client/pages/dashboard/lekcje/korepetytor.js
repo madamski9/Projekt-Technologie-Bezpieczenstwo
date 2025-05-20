@@ -1,8 +1,8 @@
 import GoogleConnectButton from "../../components/GoogleConnectButton"
 import GoogleCalendarEvents from "../../components/GoogleCalendarEvents"
-import AddGoogleEventModal from "./../components/AddGoogleEventModal"
+import AddGoogleEventModal from "../../components/AddGoogleEventModal"
 
-const KorepetytorDashboard = () => {
+const KorepetytorLessons = () => {
     const handleRefreshEvents = () => {
         setRefresh(prev => prev + 1) 
     }
@@ -18,4 +18,4 @@ const KorepetytorDashboard = () => {
     )
 }
 
-export default KorepetytorDashboard
+export default KorepetytorLessons

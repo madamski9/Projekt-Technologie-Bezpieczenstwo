@@ -334,6 +334,35 @@ app.get('/api/admin/roles', requireRoles(['admin']), async (req, res) => {
   }
 })
 
+app.get('/api/users-tutor', requireRoles(['uczen']), async (req, res) => {
+    try {
+        const kcAdminClient = await getKeycloakAdminClient()
+        const users = await kcAdminClient.users.find()
+        const roleName = 'korepetytor'
+        const filteredUsers = []
+
+        for (const user of users) {
+            const roles = await kcAdminClient.users.listRealmRoleMappings({ id: user.id })
+
+            const hasRole = roles.some(role => role.name === roleName)
+
+            if (hasRole) {
+                filteredUsers.push({
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                })
+            }
+        }
+
+        res.status(200).json(filteredUsers)
+    } catch (err) {
+        console.error('Błąd podczas filtrowania użytkowników:', err)
+        res.status(500).json({ message: 'Wystąpił błąd serwera.' })
+    }
+})
+
+
 app.get('/api/admin/users/:id/roles', requireRoles(['admin']), async (req, res) => {
     try {
         const kcAdminClient = await getKeycloakAdminClient()

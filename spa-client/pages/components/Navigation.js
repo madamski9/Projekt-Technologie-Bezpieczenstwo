@@ -15,10 +15,9 @@ const Navigation = () => {
   return (
     <nav className="nav">
       <ul className="nav-list">
-        <li onClick={() => navigate("/")}>Strona główna</li>
-        <li onClick={() => userRole === "uczen" ? navigate("/dashboard/uczen") : navigate("/dashboard/korepetytor")}>Dashboard</li>
-        <li onClick={() => userRole === "uczen" ? navigate("/dashboard/lekcje/uczen") : navigate("/lekcje/korepetytor")}>Lekcje</li>
-        <li onClick={() => navigate("/profil")}>Profil</li>
+        <li onClick={() => userRole === "uczen" ? navigate("/dashboard/uczen") : navigate("/dashboard/korepetytor")}>Strona główna</li>
+        <li onClick={() => userRole === "uczen" ? navigate("/dashboard/lekcje/uczen") : navigate("/dashboard/lekcje/korepetytor")}>Lekcje</li>
+        <li onClick={() => userRole === "uczen" ? navigate("/dashboard/profil/uczen") : navigate("/dashboard/profil/korepetytor")}>Profil</li>
       </ul>
       <button className="logout-button" onClick={handleLogout}>
         Wyloguj się
