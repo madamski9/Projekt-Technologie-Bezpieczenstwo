@@ -59,10 +59,10 @@ const UczenDashboard = () => {
                 <div style={styles.cardContainer}>
                     {inniKorepetytorzy.map(k => (
                         <div key={k.id} style={styles.card}>
-                            <div style={styles.avatar}>{k.imie?.charAt(0) || "?"}</div>
+                            <div style={styles.avatar}>{k.username?.charAt(0) || "?"}</div>
                             <div style={styles.cardContent}>
-                                <h3 style={styles.cardTitle}>{k.imie}</h3>
-                                <p style={styles.cardText}>{k.specjalizacja}</p>
+                                <h3 style={styles.cardTitle}>{k.username}</h3>
+                                <p style={styles.cardText}>{k.specjalizacja?.charAt(0) || "?"}</p>
                             </div>
                             <button style={styles.primaryButton}>Dodaj</button>
                         </div>

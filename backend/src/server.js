@@ -292,17 +292,21 @@ app.get('/api/dashboard', requireRoles(['korepetytor', 'uczen']), (req, res) => 
 })
 
 app.get('/auth/logout', (req, res) => {
-  const idToken = req.cookies.id_token
+    const idToken = req.cookies.id_token
 
-  res.clearCookie('auth_token', { httpOnly: false, sameSite: 'Lax' })
-  res.clearCookie('id_token', { httpOnly: true, sameSite: 'Lax' })
-  res.clearCookie('user_role', { httpOnly: true, sameSite: 'Lax' })
-  res.clearCookie('google_token', { httpOnly: false, sameSite: 'Lax' })
+    if (!idToken) {
+        return res.redirect('http://localhost:3002')
+    }
 
-  const postLogoutRedirect = encodeURIComponent('http://localhost:3002')
-  const logoutURL = `http://localhost:8080/realms/korepetycje/protocol/openid-connect/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${postLogoutRedirect}`
+    res.clearCookie('auth_token', { httpOnly: false, sameSite: 'Lax' })
+    res.clearCookie('id_token', { httpOnly: true, sameSite: 'Lax' })
+    res.clearCookie('user_role', { httpOnly: true, sameSite: 'Lax' })
+    res.clearCookie('google_token', { httpOnly: false, sameSite: 'Lax' })
 
-  return res.redirect(logoutURL)
+    const postLogoutRedirect = encodeURIComponent('http://localhost:3002')
+    const logoutURL = `http://localhost:8080/realms/korepetycje/protocol/openid-connect/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${postLogoutRedirect}`
+
+    return res.redirect(logoutURL)
 })
 
 app.get('/api/admin/users', requireRoles(['admin']), async (req, res) => {
@@ -429,6 +433,7 @@ app.post('/api/admin/users', express.json(), requireRoles(['admin']), async (req
 
     const allRoles = await kcAdminClient.roles.find()
     const rolesToAssign = allRoles.filter(role => roles.includes(role.name))
+    //await saveUser(createdUser) NAPRAWIC!!!!
 
     if (rolesToAssign.length > 0) {
       await kcAdminClient.users.addRealmRoleMappings({
