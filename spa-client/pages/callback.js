@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import cookies from 'js-cookie'
@@ -7,41 +9,71 @@ const Callback = () => {
   const router = useRouter()
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const code = urlParams.get("code")
+    const handleAuth = async () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const code = urlParams.get("code")
 
-    if (code) {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/callback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ code }),
-      })
-      .then(res => res.json())
-      .then(data => {
-        console.log("Token exchanged:", data)
-        
+      if (!code) {
+        router.push("/login?error=missing_code")
+        return
+      }
+
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/callback`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ code }),
+        })
+
+        if (!res.ok) throw new Error("Token exchange failed")
+
+        const data = await res.json()
         const roles = data.roles || []
-        console.log("role: ", roles)
+        const token = cookies.get("auth_token")
+        console.log("token: ", token)
+
         if (roles.includes("korepetytor")) {
           cookies.set('user_role', 'korepetytor', { expires: 1, secure: false, sameSite: 'Lax' })
-          router.push("/dashboard/korepetytor")
+
+          const checkRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/check-user`, {
+            method: "GET",
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+            credentials: "include",
+          })
+
+          if (!checkRes.ok) throw new Error("User check failed")
+          const checkData = await checkRes.json()
+          console.log("user data: ", checkData)
+
+          if (!checkData.exists) {
+            router.push("/uzupelnij-profil/korepetytor") 
+          } else {
+            router.push("/dashboard/korepetytor")
+          }
+
         } else if (roles.includes("uczen")) {
           cookies.set('user_role', 'uczen', { expires: 1, secure: false, sameSite: 'Lax' })
           router.push("/dashboard/uczen")
+
         } else if (roles.includes("admin")) {
           window.location.href = "http://localhost:3001"
+
         } else {
-          router.push("/_error.js")
+          router.push("/_error")
         }
-      })
-      .catch(err => {
-        console.error("Token exchange failed", err)
+
+      } catch (err) {
+        console.error("Błąd podczas autoryzacji:", err)
         router.push("/login?error=auth_failed")
-      })
+      }
     }
+
+    handleAuth()
   }, [router])
 
   return (
@@ -78,14 +110,6 @@ const styles = {
     fontSize: '1.25rem',
     color: '#64748b',
     fontWeight: '500',
-  },
-  '@keyframes spin': {
-    from: {
-      transform: 'rotate(0deg)',
-    },
-    to: {
-      transform: 'rotate(360deg)',
-    },
   },
 }
 

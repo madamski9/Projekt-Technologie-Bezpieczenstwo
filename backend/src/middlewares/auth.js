@@ -15,7 +15,17 @@ const checkJwt = () => {
         audience: 'backend-client',
         issuer: process.env.KEYCLOAK_REALM_URI,
         algorithms: ['RS256'],
-        credentialsRequired: false, 
+        credentialsRequired: true, 
+        getToken: (req) => {
+            console.log("req.headers.authorization", req.headers.authorization)
+            console.log("req cookies auth token: ", req.cookies.auth_token)
+            if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+                return req.headers.authorization.split(' ')[1];
+            } else if (req.cookies && req.cookies.auth_token) {
+                return req.cookies.auth_token;
+            }
+            return null
+        }
     })
 }
 

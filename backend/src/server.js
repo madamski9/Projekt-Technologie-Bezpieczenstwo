@@ -8,6 +8,8 @@ import jwt from 'jsonwebtoken'
 import requireRoles from './utils/requireRole.js'
 import cookie from 'cookie'
 import getKeycloakAdminClient from './utils/getKeycloakAdminClient.js'
+import checkUser from './utils/checkUserDb.js'
+import addTutor from './utils/addTutor.js'
 
 dotenv.config()
 const app = express()
@@ -17,8 +19,8 @@ app.use(cors({
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
 }))
-app.use('/api', checkJwt())
 app.use(cookieParser())
+app.use('/api', checkJwt())
 app.use((req, res, next) => {
     console.log('Request Headers:', req.headers)
     next()
@@ -72,7 +74,7 @@ app.post('/auth/callback', express.json(), async (req, res) => {
               picture: decoded.picture || null 
             }
         
-            await saveUser(userInfo)
+            // await saveUser(userInfo)
         
             res.cookie('auth_token', tokenData.access_token, {
                 httpOnly: false,
@@ -433,7 +435,6 @@ app.post('/api/admin/users', express.json(), requireRoles(['admin']), async (req
 
     const allRoles = await kcAdminClient.roles.find()
     const rolesToAssign = allRoles.filter(role => roles.includes(role.name))
-    //await saveUser(createdUser) NAPRAWIC!!!!
 
     if (rolesToAssign.length > 0) {
       await kcAdminClient.users.addRealmRoleMappings({
@@ -449,7 +450,46 @@ app.post('/api/admin/users', express.json(), requireRoles(['admin']), async (req
   }
 })
 
+app.get('/api/check-user', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1] || req.cookies.auth_token
+    if (!token) return res.status(401).json({ error: 'Brak tokena' })
+    
+    const decoded = jwt.decode(token)
+    console.log('Decoded token:', decoded)
 
+    const userId = decoded?.sub
+    if (!userId) return res.status(401).json({ error: 'Brak ID użytkownika w tokenie' })
 
-  
+    const user = await checkUser(userId)
+
+    if (user) {
+      res.json({ exists: true, data: user })
+    } else {
+      res.json({ exists: false })
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Błąd serwera przy sprawdzaniu użytkownika' })
+  }
+})
+
+app.post('/api/add-tutor', express.json(), async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1] || req.cookies.auth_token
+    if (!token) return res.status(401).json({ error: 'Brak tokena' })
+    console.log('req.body:', req.body)
+
+    const decoded = jwt.decode(token)
+    const sub = decoded?.sub
+
+    try {
+        const profile = await addTutor(sub, req.body)
+        const userInfo = { sub, email: decoded.email, name: decoded.name, picture: decoded.picture }
+        await saveUser(userInfo)
+        res.json({ success: true, profile })
+    } catch (err) {
+        console.error('DB insert error:', err)
+        res.status(500).json({ error: 'Błąd serwera przy zapisie profilu' })
+    }
+})
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
