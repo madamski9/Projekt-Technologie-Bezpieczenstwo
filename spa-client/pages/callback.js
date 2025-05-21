@@ -41,7 +41,7 @@ const Callback = () => {
           const checkRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/check-user`, {
             method: "GET",
             headers: {
-              'Authorization': `Bearer ${token}`,
+              'Authorization': `Bearer ${token}`
             },
             credentials: "include",
           })
@@ -64,7 +64,7 @@ const Callback = () => {
           window.location.href = "http://localhost:3001"
 
         } else {
-          router.push("/_error")
+          router.push("/rejestracja")
         }
 
       } catch (err) {

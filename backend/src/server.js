@@ -11,6 +11,7 @@ import getKeycloakAdminClient from './utils/getKeycloakAdminClient.js'
 import checkUser from './utils/checkUserDb.js'
 import addTutor from './utils/addTutor.js'
 import pool from './config/db.js'
+import addStudent from './utils/addStudent.js'
 
 dotenv.config()
 const app = express()
@@ -381,8 +382,6 @@ app.get('/api/users-tutor', requireRoles(['uczen']), async (req, res) => {
   }
 })
 
-
-
 app.get('/api/admin/users/:id/roles', requireRoles(['admin']), async (req, res) => {
     try {
         const kcAdminClient = await getKeycloakAdminClient()
@@ -401,10 +400,10 @@ app.get('/api/admin/users/:id/roles', requireRoles(['admin']), async (req, res) 
     }
 })
 
-
 app.put('/api/admin/users/:id/roles', express.json(), requireRoles(['admin']), async (req, res) => {
   const userId = req.params.id
   const roles = req.body.roles
+  console.log("backend role: ", roles)
 
   try {
     const kcAdminClient = await getKeycloakAdminClient()
@@ -429,6 +428,41 @@ app.put('/api/admin/users/:id/roles', express.json(), requireRoles(['admin']), a
     res.status(500).json({ message: 'Błąd serwera' })
   }
 })
+
+app.put('/api/public/set-role/:id', express.json(), async (req, res) => {
+  const userId = req.params.id
+  const requestedRole = req.body.role
+
+  if (!userId) {
+    return res.status(400).json({ message: 'Brakuje ID użytkownika' })
+  }
+
+  if (!['uczen', 'korepetytor'].includes(requestedRole)) {
+    return res.status(400).json({ message: 'Nieprawidłowa rola' })
+  }
+
+  try {
+    const kcAdminClient = await getKeycloakAdminClient()
+    const allRoles = await kcAdminClient.roles.find()
+    const roleToAssign = allRoles.find(role => role.name === requestedRole)
+
+    if (!roleToAssign) {
+      return res.status(400).json({ message: 'Nie znaleziono roli' })
+    }
+
+    await kcAdminClient.users.addRealmRoleMappings({
+      id: userId,
+      roles: [roleToAssign]
+    })
+
+    res.status(200).json({ message: 'Rola przypisana' })
+  } catch (err) {
+    console.error('Błąd przypisywania roli:', err)
+    res.status(500).json({ message: 'Błąd serwera podczas przypisywania roli' })
+  }
+})
+
+
 
 app.post('/api/admin/users', express.json(), requireRoles(['admin']), async (req, res) => {
   const { username, email, password, roles = [] } = req.body
@@ -504,6 +538,51 @@ app.post('/api/add-tutor', express.json(), async (req, res) => {
         console.error('DB insert error:', err)
         res.status(500).json({ error: 'Błąd serwera przy zapisie profilu' })
     }
+})
+
+app.post('/api/add-student', express.json(), async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1] || req.cookies.auth_token
+    if (!token) return res.status(401).json({ error: 'Brak tokena' })
+    console.log('req.body:', req.body)
+
+    const decoded = jwt.decode(token)
+    const sub = decoded?.sub
+
+    try {
+        const profile = await addStudent(sub, req.body)
+        const userInfo = { sub, email: decoded.email, name: decoded.name, picture: decoded.picture }
+        await saveUser(userInfo)
+        res.json({ success: true, profile })
+    } catch (err) {
+        console.error('DB insert error:', err)
+        res.status(500).json({ error: 'Błąd serwera przy zapisie profilu' })
+    }
+})
+
+app.get('/auth/profile', express.json(), (req, res) => {
+  const authHeader = req.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Brak tokena' })
+  }
+
+  const token = authHeader.split(' ')[1]
+
+  try {
+    const decoded = jwt.decode(token) 
+    if (!decoded || !decoded.sub) {
+      return res.status(400).json({ error: 'Nieprawidłowy token' })
+    }
+
+    res.json({
+      id: decoded.sub,
+      email: decoded.email,
+      preferred_username: decoded.preferred_username,
+    })
+
+  } catch (err) {
+    console.error('Błąd dekodowania tokena:', err)
+    res.status(500).json({ error: 'Błąd serwera' })
+  }
 })
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))

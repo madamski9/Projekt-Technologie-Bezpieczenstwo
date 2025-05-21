@@ -7,35 +7,53 @@ const UczenDashboard = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
 
-    useEffect(() => {
-        const fetchTutors = async () => {
-            try {
-                const token = cookies.get("auth_token")
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users-tutor`, {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                    credentials: "include",
-                }) 
-                if (!res.ok) throw new Error("Błąd podczas pobierania korepetytorów")
-                const data = await res.json()
-                console.log("data: ", data)
-                setInniKorepetytorzy(data)
-            } catch (err) {
-                console.error(err)
-                setError("Nie udało się pobrać korepetytorów.")
-            } finally {
-                setLoading(false)
-            }
+    
+    const fetchTutors = async () => {
+        try {
+            const token = cookies.get("auth_token")
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users-tutor`, {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                credentials: "include",
+            }) 
+            if (!res.ok) throw new Error("Błąd podczas pobierania korepetytorów")
+            const data = await res.json()
+            console.log("data: ", data)
+            setInniKorepetytorzy(data)
+        } catch (err) {
+            console.error(err)
+            setError("Nie udało się pobrać korepetytorów.")
+        } finally {
+            setLoading(false)
         }
-
+    }
+    
+    useEffect(() => {
         fetchTutors()
     }, [])
 
-    // const filteredKorepetytorzy = inniKorepetytorzy.filter(k =>
-    //     k.specjalizacja?.toLowerCase().includes(specjalizacja.toLowerCase())
-    // )
+    const handleAddToFriends = async (e, tutorId) => {
+    e.preventDefault()
+    try {
+        const token = cookies.get("auth_token")
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/friends`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ tutorId }),
+        })
+        if (!res.ok) throw new Error("Nie udało się dodać korepetytora.")
+        alert("Korepetytor dodany do znajomych!")
+    } catch (err) {
+        console.error(err)
+        alert("Błąd podczas dodawania korepetytora.")
+    }
+}
+
 
     if (loading) return <div style={{ padding: "2rem" }}>Ładowanie danych...</div>
     if (error) return <div style={{ padding: "2rem", color: "red" }}>{error}</div>
@@ -71,7 +89,10 @@ const UczenDashboard = () => {
                             <p style={styles.cardText}>Cena: {k.cena} PLN</p>
                             <p style={styles.cardText}>Lokalizacja: {k.lokalizacja}</p>
                             </div>
-                            <button style={styles.primaryButton}>Dodaj</button>
+                            <button 
+                                style={styles.primaryButton}
+                                onClick={(e) => handleAddToFriends(e, k.sub)}
+                                >Dodaj</button>
                         </div>
                         ))
                     }

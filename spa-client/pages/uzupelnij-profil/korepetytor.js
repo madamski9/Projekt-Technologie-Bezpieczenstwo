@@ -40,7 +40,7 @@ const UzupelnijProfilKorepetytor = () => {
 
             const data = await res.json()
             console.log('Zapisano profil:', data)
-            router.push("../dashboard/korepetytor")
+            window.location.href = process.env.NEXT_PUBLIC_KEYCLOAK_LOGIN_URL
         } catch (err) {
             console.error('Błąd zapisu:', err)
             alert('Wystąpił problem podczas zapisywania profilu.')
