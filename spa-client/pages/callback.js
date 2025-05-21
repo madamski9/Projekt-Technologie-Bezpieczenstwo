@@ -58,7 +58,24 @@ const Callback = () => {
 
         } else if (roles.includes("uczen")) {
           cookies.set('user_role', 'uczen', { expires: 1, secure: false, sameSite: 'Lax' })
-          router.push("/dashboard/uczen")
+
+          const checkRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/check-user`, {
+            method: "GET",
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            credentials: "include",
+          })
+
+          if (!checkRes.ok) throw new Error("User check failed")
+          const checkData = await checkRes.json()
+          console.log("user data: ", checkData)
+
+          if (!checkData.exists) {
+            router.push("/uzupelnij-profil/uczen") 
+          } else {
+            router.push("/dashboard/uczen")
+          }
 
         } else if (roles.includes("admin")) {
           window.location.href = "http://localhost:3001"
