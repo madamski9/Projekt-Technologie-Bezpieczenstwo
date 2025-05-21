@@ -10,6 +10,7 @@ import cookie from 'cookie'
 import getKeycloakAdminClient from './utils/getKeycloakAdminClient.js'
 import checkUser from './utils/checkUserDb.js'
 import addTutor from './utils/addTutor.js'
+import pool from './config/db.js'
 
 dotenv.config()
 const app = express()
@@ -341,32 +342,45 @@ app.get('/api/admin/roles', requireRoles(['admin']), async (req, res) => {
 })
 
 app.get('/api/users-tutor', requireRoles(['uczen']), async (req, res) => {
-    try {
-        const kcAdminClient = await getKeycloakAdminClient()
-        const users = await kcAdminClient.users.find()
-        const roleName = 'korepetytor'
-        const filteredUsers = []
+  try {
+    const kcAdminClient = await getKeycloakAdminClient()
+    const users = await kcAdminClient.users.find()
+    const roleName = 'korepetytor'
 
-        for (const user of users) {
-            const roles = await kcAdminClient.users.listRealmRoleMappings({ id: user.id })
-
-            const hasRole = roles.some(role => role.name === roleName)
-
-            if (hasRole) {
-                filteredUsers.push({
-                    id: user.id,
-                    username: user.username,
-                    email: user.email,
-                })
-            }
-        }
-
-        res.status(200).json(filteredUsers)
-    } catch (err) {
-        console.error('Błąd podczas filtrowania użytkowników:', err)
-        res.status(500).json({ message: 'Wystąpił błąd serwera.' })
+    const korepetytorzy = []
+    for (const user of users) {
+      const roles = await kcAdminClient.users.listRealmRoleMappings({ id: user.id })
+      const hasRole = roles.some(role => role.name === roleName)
+      if (hasRole) {
+        korepetytorzy.push({
+          sub: user.id,       
+          username: user.username,
+          email: user.email,
+        })
+      }
     }
+
+    const subs = korepetytorzy.map(u => u.sub)
+    const { rows: profiles } = await pool.query(`
+      SELECT sub, specjalizacja, opis, przedmioty, cena, lokalizacja, dostepnosc
+      FROM tutor_profiles
+      WHERE sub = ANY($1)
+    `, [subs])
+
+    const profilesMap = new Map(profiles.map(p => [p.sub, p]))
+
+    const merged = korepetytorzy.map(user => ({
+      ...user,
+      ...profilesMap.get(user.sub) 
+    }))
+
+    res.status(200).json(merged)
+  } catch (err) {
+    console.error('Błąd podczas filtrowania użytkowników:', err)
+    res.status(500).json({ message: 'Wystąpił błąd serwera.' })
+  }
 })
+
 
 
 app.get('/api/admin/users/:id/roles', requireRoles(['admin']), async (req, res) => {

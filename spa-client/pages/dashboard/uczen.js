@@ -57,16 +57,24 @@ const UczenDashboard = () => {
                     style={styles.searchInput}
                 />
                 <div style={styles.cardContainer}>
-                    {inniKorepetytorzy.map(k => (
-                        <div key={k.id} style={styles.card}>
-                            <div style={styles.avatar}>{k.username?.charAt(0) || "?"}</div>
+                    {inniKorepetytorzy
+                        .filter(k => 
+                        specjalizacja === "" || 
+                        k.specjalizacja?.toLowerCase().includes(specjalizacja.toLowerCase())
+                        )
+                        .map(k => (
+                        <div key={k.sub} style={styles.card}>
+                            <div style={styles.avatar}>{k.username?.charAt(0).toUpperCase() || "?"}</div>
                             <div style={styles.cardContent}>
-                                <h3 style={styles.cardTitle}>{k.username}</h3>
-                                <p style={styles.cardText}>{k.specjalizacja?.charAt(0) || "?"}</p>
+                            <h3 style={styles.cardTitle}>{k.username}</h3>
+                            <p style={styles.cardText}>{k.specjalizacja || "-"}</p>
+                            <p style={styles.cardText}>Cena: {k.cena} PLN</p>
+                            <p style={styles.cardText}>Lokalizacja: {k.lokalizacja}</p>
                             </div>
                             <button style={styles.primaryButton}>Dodaj</button>
                         </div>
-                    ))}
+                        ))
+                    }
                 </div>
             </section>
         </div>
