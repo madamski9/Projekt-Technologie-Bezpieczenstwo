@@ -50,9 +50,10 @@ export const fetchFriendsTutor = async (tutorId) => {
       s.opis
     FROM student_profiles s
     JOIN users u ON u.sub = s.sub
-    WHERE s.sub = ANY($1::uuid[])`,
-    [friendsUuids]
+    WHERE s.sub = ANY($1::text[])`,
+    [friendsUuids.map(uuid => uuid.toString())] 
   )
+
 
   return friends.rows
 }

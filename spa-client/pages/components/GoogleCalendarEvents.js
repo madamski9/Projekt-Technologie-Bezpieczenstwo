@@ -1,20 +1,20 @@
 "use client"
-import { useEffect, useState } from "react";
-import cookies from 'js-cookie';
-import { Trash2, Loader2, Calendar, Clock, AlertCircle } from 'lucide-react';
-import formatDateTime from "../utils/formatDateTime";
+import { useEffect, useState } from "react"
+import cookies from 'js-cookie'
+import { Trash2, Loader2, Calendar, Clock, AlertCircle } from 'lucide-react'
+import formatDateTime from "../utils/formatDateTime"
 
 const CalendarEvents = ({ refreshTrigger }) => {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [events, setEvents] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const fetchEvents = async () => {
-    const token = cookies.get('google_token');
+    const token = cookies.get('google_token')
     if (!token) {
-      setError('Połącz się z Google Kalendarzem!');
-      setLoading(false);
-      return;
+      setError('Połącz się z Google Kalendarzem!')
+      setLoading(false)
+      return
     }
 
     try {
@@ -22,34 +22,34 @@ const CalendarEvents = ({ refreshTrigger }) => {
         headers: {
           'Authorization': `Bearer ${token}`
         }
-      });
+      })
 
       if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || JSON.stringify(errData) || 'błąd API');
+        const errData = await res.json()
+        throw new Error(errData.error || JSON.stringify(errData) || 'błąd API')
       }
 
-      const data = await res.json();
-      setEvents(data.items || []);
+      const data = await res.json()
+      setEvents(data.items || [])
     } catch (err) {
-      setError(err.message || 'Nieznany błąd');
+      setError(err.message || 'Nieznany błąd')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchEvents();
-  }, [refreshTrigger]);
+    fetchEvents()
+  }, [refreshTrigger])
 
   const handleDelete = async (eventId) => {
-    const confirmed = window.confirm("Czy na pewno chcesz usunąć to wydarzenie?");
-    if (!confirmed) return;
+    const confirmed = window.confirm("Czy na pewno chcesz usunąć to wydarzenie?")
+    if (!confirmed) return
 
-    const token = cookies.get('google_token');
+    const token = cookies.get('google_token')
     if (!token) {
-      alert('Brak tokenu Google');
-      return;
+      alert('Brak tokenu Google')
+      return
     }
 
     try {
@@ -58,34 +58,34 @@ const CalendarEvents = ({ refreshTrigger }) => {
         headers: {
           Authorization: `Bearer ${token}`
         }
-      });
+      })
 
       if (!res.ok) {
-        const err = await res.json();
-        alert(`Błąd usuwania: ${err.error || 'Nieznany błąd'}`);
-        return;
+        const err = await res.json()
+        alert(`Błąd usuwania: ${err.error || 'Nieznany błąd'}`)
+        return
       }
 
-      fetchEvents();
+      fetchEvents()
     } catch (err) {
-      console.error(err);
-      alert('Wewnętrzny błąd serwera');
+      console.error(err)
+      alert('Wewnętrzny błąd serwera')
     }
-  };
+  }
 
   if (loading) return (
     <div style={styles.loading}>
       <Loader2 size={24} className="spin" style={{ animation: 'spin 1s linear infinite' }} />
       <p>Ładowanie wydarzeń...</p>
     </div>
-  );
+  )
 
   if (error) return (
     <div style={styles.error}>
       <AlertCircle size={20} />
       <p>{error}</p>
     </div>
-  );
+  )
 
   return (
     <div style={styles.eventsContainer}>
@@ -129,8 +129,8 @@ const CalendarEvents = ({ refreshTrigger }) => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
 const styles = {
   eventsContainer: {
@@ -220,6 +220,6 @@ const styles = {
     lineHeight: '1.5',
     margin: 0,
   },
-};
+}
 
-export default CalendarEvents;
+export default CalendarEvents
