@@ -2,6 +2,7 @@ import express from 'express'
 import getAccessToken from './getAccessToken.js'
 import dotenv from 'dotenv'
 import cors from 'cors'
+import nodemailer from 'nodemailer'
 
 const app = express()
 app.use(express.json())
@@ -33,10 +34,35 @@ app.get('/b2b/ping-api', async (req, res) => {
     return res.json(data)
 })
 
-app.post('/notifications/new-event', (req, res) => {
+app.post('/notifications/new-event', async (req, res) => {
     console.log('POST /notifications/new-event otrzymany')
     const { event } = req.body
     console.log('Otrzymano powiadomienie o nowym wydarzeniu:', event)
+    
+    const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+        },
+    })
+
+    const mailOptions = {
+        from: `"B2B Notifier" <${process.env.SMTP_USER}>`,
+        to: process.env.EMAIL_TO,
+        subject: 'Nowe korepetycje',
+        text: `Otrzymano nowe wydarzenie:\n\n${JSON.stringify(event, null, 2)}`
+    }
+
+    try {
+        await transporter.sendMail(mailOptions)
+        console.log('Email został wysłany!')
+    } catch (err) {
+        console.error('Błąd wysyłania maila:', err)
+    }
+
     res.sendStatus(200)
 })
 
