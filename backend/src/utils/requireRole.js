@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken'
 const requireRoles = (roles = []) => {
   return (req, res, next) => {
     const token = req.cookies.auth_token
-    console.log("token: ", token)
     if (!token) {
       return res.status(401).json({ message: 'Access denied, no token provided' })
     }
@@ -12,7 +11,6 @@ const requireRoles = (roles = []) => {
       const decoded = jwt.decode(token)
       const userRoles = decoded?.realm_access?.roles || []
       console.log("userRoles: ", userRoles)
-      console.log("decoded: ", decoded)
 
       const hasRole = roles.some(role => userRoles.includes(role))
       console.log("hasRole: ", hasRole)

@@ -12,6 +12,9 @@ import checkUser from './utils/checkUserDb.js'
 import addTutor from './utils/addTutor.js'
 import pool from './config/db.js'
 import addStudent from './utils/addStudent.js'
+import { addFriendStudent, addFriendTutor } from './utils/addFriend.js'
+import { fetchFriendsStudent, fetchFriendsTutor } from './utils/fetchFriends.js'
+import { removeFriendFromStudent, removeFriendFromTutor } from './utils/removeFriend.js'
 
 dotenv.config()
 const app = express()
@@ -33,7 +36,7 @@ app.get('/api/hello', (req, res) => {
 })
 
 app.get('/health', (req, res) => {
-    res.status(200).send('OK');
+    res.status(200).send('OK')
 })
 
 app.get('/protected', (req, res) => {
@@ -356,6 +359,7 @@ app.get('/api/users-tutor', requireRoles(['uczen']), async (req, res) => {
         korepetytorzy.push({
           sub: user.id,       
           username: user.username,
+          name: `${user.firstName} ${user.lastName}`,
           email: user.email,
         })
       }
@@ -582,6 +586,96 @@ app.get('/auth/profile', express.json(), (req, res) => {
   } catch (err) {
     console.error('Błąd dekodowania tokena:', err)
     res.status(500).json({ error: 'Błąd serwera' })
+  }
+})
+
+app.post('/api/friends', express.json(), requireRoles(['korepetytor', 'uczen']), async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1] || req.cookies.auth_token
+  if (!token) return res.status(401).json({ error: 'Brak tokena' })
+
+  const { tutorId } = req.body
+  const decoded = jwt.decode(token)
+  const studentId = decoded?.sub
+  const role = decoded?.realm_access.roles
+
+  if (!studentId || !tutorId) {
+    return res.status(400).json({ message: 'Brakuje studentId lub friendId' })
+  }
+
+  try {
+    if (role.includes('uczen')) {
+      const updatedProfile = await addFriendStudent(studentId, tutorId)
+      return res.status(200).json(updatedProfile)
+    } else if (role.includes('korepetytor')) {
+      const updatedProfile = await addFriendTutor(studentId, tutorId)
+      return res.status(200).json(updatedProfile)
+    } else {
+      return res.status(403).json({ message: 'Nieznana rola' })
+    }
+  } catch (error) {
+    console.error('Błąd dodawania znajomego:', error)
+    return res.status(500).json({ message: 'Wewnętrzny błąd serwera' })
+  }
+})
+
+app.get('/api/fetch-friends', requireRoles(['korepetytor', 'uczen']), async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1] || req.cookies.auth_token
+  if (!token) return res.status(401).json({ error: 'Brak tokena' })
+
+  const decoded = jwt.decode(token)
+  const userId = decoded?.sub
+  const userRoles = decoded?.realm_access.roles
+
+  try {
+    if (userRoles.includes('uczen')) {
+      const friends = await fetchFriendsStudent(userId)
+      return res.json(friends)
+    }
+
+    if (userRoles.includes('korepetytor')) {
+      const friends = await fetchFriendsTutor(userId)
+      return res.json(friends)
+    }
+
+    return res.status(403).json({ error: 'Brak odpowiednich uprawnień' })
+  } catch (err) {
+    console.error('Błąd pobierania znajomych:', err)
+    return res.status(500).json({ error: err.message || 'Wewnętrzny błąd serwera' })
+  }
+})
+
+app.delete('/api/delete-friend/:id', requireRoles(['korepetytor', 'uczen']), async (req, res) => {
+  const friendId = req.params.id
+  const token = req.headers.authorization?.split(' ')[1] || req.cookies.auth_token
+  if (!token) return res.status(401).json({ error: 'Brak tokena' })
+
+  const decoded = jwt.decode(token)
+  const userId = decoded?.sub
+  const userRoles = decoded?.realm_access.roles
+
+  if (!friendId) return res.status(400).json({ error: 'Brak id znajomego' })
+
+  try {
+    if (userRoles.includes('uczen')) {
+      const removed = await removeFriendFromStudent(userId, friendId)
+      if (removed === 0) {
+        return res.status(404).json({ error: "Nie znaleziono użytkownika lub znajomego" })
+      }
+      return res.json({ message: 'Znajomy usunięty' })
+    }
+
+    if (userRoles.includes('korepetytor')) {
+      const removed = await removeFriendFromTutor(userId, friendId)
+      if (removed === 0) {
+        return res.status(404).json({ error: "Nie znaleziono użytkownika lub znajomego" })
+      }
+      return res.json({ message: 'Znajomy usunięty' })
+    }
+
+    return res.status(403).json({ error: 'Brak odpowiednich uprawnień' })
+  } catch (err) {
+    console.error('Błąd usuwania znajomego:', err)
+    return res.status(500).json({ error: 'Wewnętrzny błąd serwera' })
   }
 })
 
