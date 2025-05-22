@@ -651,32 +651,30 @@ app.delete('/api/delete-friend/:id', requireRoles(['korepetytor', 'uczen']), asy
 
   const decoded = jwt.decode(token)
   const userId = decoded?.sub
-  const userRoles = decoded?.realm_access.roles
-
-  if (!friendId) return res.status(400).json({ error: 'Brak id znajomego' })
+  if (!userId || !friendId) return res.status(400).json({ error: 'Brak wymaganych danych' })
 
   try {
-    if (userRoles.includes('uczen')) {
-      const removed = await removeFriendFromStudent(userId, friendId)
-      if (removed === 0) {
-        return res.status(404).json({ error: "Nie znaleziono użytkownika lub znajomego" })
-      }
-      return res.json({ message: 'Znajomy usunięty' })
+    const removedFromStudent = await removeFriendFromStudent(userId, friendId)
+    const removedFromTutor = await removeFriendFromTutor(userId, friendId)
+
+    const removedReverseFromStudent = await removeFriendFromStudent(friendId, userId)
+    const removedReverseFromTutor = await removeFriendFromTutor(friendId, userId)
+
+    if (
+      removedFromStudent === 0 &&
+      removedFromTutor === 0 &&
+      removedReverseFromStudent === 0 &&
+      removedReverseFromTutor === 0
+    ) {
+      return res.status(404).json({ error: "Nie znaleziono użytkowników lub znajomych" })
     }
 
-    if (userRoles.includes('korepetytor')) {
-      const removed = await removeFriendFromTutor(userId, friendId)
-      if (removed === 0) {
-        return res.status(404).json({ error: "Nie znaleziono użytkownika lub znajomego" })
-      }
-      return res.json({ message: 'Znajomy usunięty' })
-    }
-
-    return res.status(403).json({ error: 'Brak odpowiednich uprawnień' })
+    return res.json({ message: 'Znajomy usunięty obustronnie' })
   } catch (err) {
     console.error('Błąd usuwania znajomego:', err)
     return res.status(500).json({ error: 'Wewnętrzny błąd serwera' })
   }
 })
+
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))

@@ -1,67 +1,69 @@
 import pool from '../config/db.js'
 
 export const addFriendStudent = async (studentId, friendId) => {
-  const userCheck = await pool.query('SELECT sub FROM student_profiles WHERE sub = $1', [studentId])
-  if (userCheck.rowCount === 0) {
-    throw new Error('Użytkownik nie znaleziony')
-  }
+  const studentRes = await pool.query('SELECT znajomi FROM student_profiles WHERE sub = $1', [studentId])
+  if (studentRes.rowCount === 0) throw new Error('Użytkownik (uczeń) nie znaleziony')
 
-  const znajomi = userCheck.rows[0].znajomi || []
+  const znajomiStudent = studentRes.rows[0].znajomi || []
+  if (znajomiStudent.includes(friendId)) throw new Error('Znajomy już istnieje')
 
-  if (znajomi.includes(friendId)) {
-    throw new Error('Znajomy już istnieje')
-  }
-
-  const query = `
+  await pool.query(`
     UPDATE student_profiles
     SET znajomi = ARRAY(
       SELECT DISTINCT elem
-      FROM unnest(ARRAY_REMOVE(COALESCE(znajomi, '{}'), NULL) || ARRAY[$2::uuid]) AS elem
+      FROM unnest(COALESCE(znajomi, '{}') || ARRAY[$2::uuid]) AS elem
     )
     WHERE sub = $1
-    RETURNING *
-  `
+  `, [studentId, friendId])
 
-  const values = [studentId, friendId]
-
-  const { rows } = await pool.query(query, values)
-
-  if (rows.length === 0) {
-    throw new Error('Aktualizacja nie powiodła się')
+  const tutorRes = await pool.query('SELECT znajomi FROM tutor_profiles WHERE sub = $1', [friendId])
+  if (tutorRes.rowCount > 0) {
+    const znajomiTutor = tutorRes.rows[0].znajomi || []
+    if (!znajomiTutor.includes(studentId)) {
+      await pool.query(`
+        UPDATE tutor_profiles
+        SET znajomi = ARRAY(
+          SELECT DISTINCT elem
+          FROM unnest(COALESCE(znajomi, '{}') || ARRAY[$1::uuid]) AS elem
+        )
+        WHERE sub = $2
+      `, [studentId, friendId])
+    }
   }
 
-  return rows[0]
+  return { message: 'Znajomy dodany obustronnie' }
 }
 
 export const addFriendTutor = async (tutorId, friendId) => {
-  const userCheck = await pool.query('SELECT sub FROM tutor_profiles WHERE sub = $1', [tutorId])
-  if (userCheck.rowCount === 0) {
-    throw new Error('Użytkownik nie znaleziony')
-  }
+  const tutorRes = await pool.query('SELECT znajomi FROM tutor_profiles WHERE sub = $1', [tutorId])
+  if (tutorRes.rowCount === 0) throw new Error('Użytkownik (tutor) nie znaleziony')
 
-  const znajomi = userCheck.rows[0].znajomi || []
+  const znajomiTutor = tutorRes.rows[0].znajomi || []
+  if (znajomiTutor.includes(friendId)) throw new Error('Znajomy już istnieje')
 
-  if (znajomi.includes(friendId)) {
-    throw new Error('Znajomy już istnieje')
-  }
-
-  const query = `
+  await pool.query(`
     UPDATE tutor_profiles
     SET znajomi = ARRAY(
       SELECT DISTINCT elem
-      FROM unnest(ARRAY_REMOVE(COALESCE(znajomi, '{}'), NULL) || ARRAY[$2::uuid]) AS elem
+      FROM unnest(COALESCE(znajomi, '{}') || ARRAY[$2::uuid]) AS elem
     )
     WHERE sub = $1
-    RETURNING *
-  `
+  `, [tutorId, friendId])
 
-  const values = [tutorId, friendId]
-
-  const { rows } = await pool.query(query, values)
-
-  if (rows.length === 0) {
-    throw new Error('Aktualizacja nie powiodła się')
+  const studentRes = await pool.query('SELECT znajomi FROM student_profiles WHERE sub = $1', [friendId])
+  if (studentRes.rowCount > 0) {
+    const znajomiStudent = studentRes.rows[0].znajomi || []
+    if (!znajomiStudent.includes(tutorId)) {
+      await pool.query(`
+        UPDATE student_profiles
+        SET znajomi = ARRAY(
+          SELECT DISTINCT elem
+          FROM unnest(COALESCE(znajomi, '{}') || ARRAY[$1::uuid]) AS elem
+        )
+        WHERE sub = $2
+      `, [tutorId, friendId])
+    }
   }
 
-  return rows[0]
+  return { message: 'Znajomy dodany obustronnie' }
 }
