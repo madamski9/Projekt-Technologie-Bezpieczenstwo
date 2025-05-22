@@ -1,5 +1,5 @@
 # Etap budowania aplikacji
-FROM node:20-slim AS builder
+FROM node:23-slim AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
@@ -7,7 +7,7 @@ COPY . .
 RUN npm install --only=production
 
 # Etap produkcyjny
-FROM node:20-slim
+FROM node:23-slim
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --only=production

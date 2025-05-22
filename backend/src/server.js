@@ -15,6 +15,7 @@ import addStudent from './utils/addStudent.js'
 import { addFriendStudent, addFriendTutor } from './utils/addFriend.js'
 import { fetchFriendsStudent, fetchFriendsTutor } from './utils/fetchFriends.js'
 import { removeFriendFromStudent, removeFriendFromTutor } from './utils/removeFriend.js'
+import fetch from 'node-fetch'
 
 dotenv.config()
 const app = express()
@@ -64,13 +65,10 @@ app.post('/auth/callback', express.json(), async (req, res) => {
         })
 
         const tokenData = await response.json()
-        console.log("token data: ", tokenData)
-        console.log("id_token: ", tokenData.id_token)
 
         if (tokenData.access_token && tokenData.id_token) {
             const decoded = jwt.decode(tokenData.access_token)
             console.log("decoded: ", decoded)
-            console.log("token data: ", tokenData)
         
             const userInfo = {
               sub: decoded.sub,
@@ -78,9 +76,7 @@ app.post('/auth/callback', express.json(), async (req, res) => {
               name: decoded.name,
               picture: decoded.picture || null 
             }
-        
-            // await saveUser(userInfo)
-        
+                
             res.cookie('auth_token', tokenData.access_token, {
                 httpOnly: false,
                 maxAge: 3600000,
@@ -230,18 +226,35 @@ app.post('/google/calendar/add-event', express.json(), async (req, res) => {
 
     try {
         const googleRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`, {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(eventData)
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(eventData)
         })
 
         const result = await googleRes.json()
 
         if (!googleRes.ok) {
             return res.status(googleRes.status).json(result)
+        }
+        // b2b 
+        try {
+            const response = await fetch('http://b2b-client:3003/notifications/new-event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ event: result })
+            })
+            console.log('Fetch response status:', response.status)
+            const responseBody = await response.text()
+
+            if (!response.ok) {
+                throw new Error(`Request failed with status ${response.status}`)
+            }
+            console.log('B2B client powiadomiony o nowym wydarzeniu')
+        } catch (e) {
+            console.error('Nie udało się powiadomić B2B client:', e.message)
         }
 
         return res.status(200).json({ message: 'wydarzenie dodane', event: result })

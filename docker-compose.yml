@@ -77,6 +77,8 @@ services:
       - ./b2b-client/.env
     networks:
       - korepetycje-net
+    volumes:
+      - ./b2b-client:/app
     depends_on:
       - backend
       - keycloak

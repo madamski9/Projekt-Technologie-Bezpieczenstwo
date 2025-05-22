@@ -13,7 +13,7 @@ const checkJwt = () => {
         }),
 
         audience: 'backend-client',
-        issuer: process.env.KEYCLOAK_REALM_URI,
+        issuer: ['http://keycloak:8080/realms/korepetycje', process.env.KEYCLOAK_REALM_URI],
         algorithms: ['RS256'],
         credentialsRequired: true, 
         getToken: (req) => {

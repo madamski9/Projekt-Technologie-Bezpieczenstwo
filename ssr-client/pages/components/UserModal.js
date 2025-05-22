@@ -78,9 +78,9 @@ const UserRolesManager = ({ user, onClose }) => {
             <div className="modalContent">
                 <button className="closeButton" onClick={onClose}>&times;</button>
                 <h3>Szczegóły użytkownika</h3>
-                <p><strong>ID:</strong> {user.id}</p>
-                <p><strong>Nazwa użytkownika:</strong> {user.username}</p>
-                <p><strong>Email:</strong> {user.email}</p>
+                <p><strong>ID:</strong> {user?.id}</p>
+                <p><strong>Nazwa użytkownika:</strong> {user?.username}</p>
+                <p><strong>Email:</strong> {user?.email}</p>
 
                 <h4>Role użytkownika:</h4>
                 {loading ? (
@@ -91,8 +91,8 @@ const UserRolesManager = ({ user, onClose }) => {
                             <label key={role.id}>
                                 <input
                                     type="checkbox"
-                                    checked={userRoles.includes(role.name)}
-                                    onChange={() => handleToggleRole(role.name)}
+                                    checked={userRoles.includes(role?.name)}
+                                    onChange={() => handleToggleRole(role?.name)}
                                 />
                                 {role.name}
                             </label>
