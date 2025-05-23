@@ -135,6 +135,7 @@ services:
     command:
       - start-dev
       - --import-realm
+      - --features=scripts
     environment:
       - KEYCLOAK_ADMIN=${KEYCLOAK_USER}
       - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_PASSWORD}
