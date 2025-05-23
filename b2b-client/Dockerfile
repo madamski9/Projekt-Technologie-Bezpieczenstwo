@@ -6,7 +6,7 @@ RUN npm install
 COPY . .
 
 # Etap produkcyjny
-FROM node:23-slim
+FROM node:23-slim 
 WORKDIR /app
 COPY --from=builder /app /app
 EXPOSE 3003
