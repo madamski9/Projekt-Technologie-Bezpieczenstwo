@@ -47,7 +47,7 @@ const UserRolesManager = ({ user, allRoles, initialUserRoles, onClose, onRolesUp
 
         <h4>Role użytkownika:</h4>
         <div className="roleList">
-          {allRoles.map(role => (
+          {(allRoles || []).map(role => (
             <label key={role.id}>
               <input
                 type="checkbox"
