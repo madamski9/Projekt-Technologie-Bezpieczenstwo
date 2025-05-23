@@ -1,29 +1,8 @@
-"use client"
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import cookies from 'js-cookie'
 
-const UserRolesManager = ({ user, allRoles, onClose }) => {
-  const [userRoles, setUserRoles] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchUserRoles = async () => {
-      try {
-        const token = cookies.get('auth_token')
-        const res = await fetch(`/api/admin/users/${user.id}/roles`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        const roles = await res.json()
-        setUserRoles(roles.map(r => r.name))
-      } catch (err) {
-        console.error("Błąd pobierania ról użytkownika:", err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchUserRoles()
-  }, [user])
+const UserRolesManager = ({ user, allRoles, initialUserRoles, onClose, onRolesUpdate }) => {
+  const [userRoles, setUserRoles] = useState(initialUserRoles)
 
   const handleToggleRole = (roleName) => {
     setUserRoles(prev =>
@@ -46,7 +25,11 @@ const UserRolesManager = ({ user, allRoles, onClose }) => {
       })
 
       if (!res.ok) throw new Error("Błąd zapisu ról")
+
+      onRolesUpdate?.(user.id, userRoles)
+
       alert("Role zapisane!")
+      onClose()
     } catch (err) {
       console.error(err)
       alert("Nie udało się zapisać ról")
@@ -63,22 +46,18 @@ const UserRolesManager = ({ user, allRoles, onClose }) => {
         <p><strong>Email:</strong> {user?.email}</p>
 
         <h4>Role użytkownika:</h4>
-        {loading ? (
-          <p>Ładowanie ról...</p>
-        ) : (
-          <div className="roleList">
-            {allRoles.map(role => (
-              <label key={role.id}>
-                <input
-                  type="checkbox"
-                  checked={userRoles.includes(role.name)}
-                  onChange={() => handleToggleRole(role.name)}
-                />
-                {role.name}
-              </label>
-            ))}
-          </div>
-        )}
+        <div className="roleList">
+          {allRoles.map(role => (
+            <label key={role.id}>
+              <input
+                type="checkbox"
+                checked={userRoles.includes(role.name)}
+                onChange={() => handleToggleRole(role.name)}
+              />
+              {role.name}
+            </label>
+          ))}
+        </div>
 
         <button className="saveButton" onClick={handleSave}>
           Zapisz role

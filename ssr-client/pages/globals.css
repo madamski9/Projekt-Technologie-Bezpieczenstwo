@@ -5,21 +5,6 @@
   text-align: center;
 }
 
-.logoutButton {
-  background-color: #1976d2;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-bottom: 30px;
-  transition: background-color 0.3s ease;
-}
-
-.logoutButton:hover {
-  background-color: #0056b3;
-}
-
 .userList {
   max-width: 600px;
   margin: 0 auto;

@@ -38,26 +38,37 @@ export async function getServerSideProps(context) {
     rolesRes.json(),
   ])
 
+  const userRolesMap = {}
+  for (const user of usersData) {
+    const res = await fetch(`http://backend:3000/api/admin/users/${user.id}/roles`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const userRoles = await res.json()
+    userRolesMap[user.id] = userRoles.map(r => r.name)
+  }
+
   return {
     props: {
       usersData,
       rolesData,
+      userRolesMap,
       error: null,
     },
   }
 }
 
-const LandingPage = ({ usersData, rolesData, error }) => {
+const LandingPage = ({ usersData, rolesData, userRolesMap, error }) => {
   const [selectedUser, setSelectedUser] = useState(null)
   const [isCreatingUser, setIsCreatingUser] = useState(false)
+  const [userRolesMapState, setUserRolesMapState] = useState(userRolesMap)
 
   return (
     <div className="admin-container">
       <nav className="admin-navbar">
         <div className="navbar-brand">Panel Administratora</div>
-        <a className="logout-button" href={process.env.NEXT_PUBLIC_LOGOUT_URL}>
+        <button className="logout-button" onClick={() => window.location.href = process.env.NEXT_PUBLIC_LOGOUT_URL}>
           Wyloguj się
-        </a>
+        </button>
       </nav>
 
       <main className="admin-content">
@@ -91,7 +102,17 @@ const LandingPage = ({ usersData, rolesData, error }) => {
         )}
 
         {selectedUser && (
-          <UserRolesManager user={selectedUser} allRoles={rolesData} onClose={() => setSelectedUser(null)} />
+          <UserRolesManager 
+            user={selectedUser} 
+            allRoles={rolesData} 
+            initialUserRoles={userRolesMapState?.[selectedUser.id] || []}
+            onClose={() => setSelectedUser(null)} 
+            onRolesUpdate={(userId, newRoles) =>
+              setUserRolesMapState(prev => ({
+                ...prev,
+                [userId]: newRoles,
+            }))}
+            />
         )}
 
         {isCreatingUser && (

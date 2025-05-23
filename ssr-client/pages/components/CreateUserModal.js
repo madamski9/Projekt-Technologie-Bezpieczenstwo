@@ -65,7 +65,7 @@ const UserCreateModal = ({ allRoles, onClose }) => {
 
         <h4>Role użytkownika:</h4>
         <div className="roleList">
-          {allRoles.map(role => (
+          {(allRoles || []).map(role => (
             <label key={role.id}>
               <input
                 type="checkbox"
