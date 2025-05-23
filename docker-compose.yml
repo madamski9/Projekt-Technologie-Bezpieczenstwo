@@ -134,9 +134,11 @@ services:
     image: quay.io/keycloak/keycloak:24.0.1
     command:
       - start-dev
+      - --import-realm
     environment:
       - KEYCLOAK_ADMIN=${KEYCLOAK_USER}
       - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_PASSWORD}
+      - QUARKUS_TRANSACTION_MANAGER_ENABLE_RECOVERY=true
     ports:
       - "8080:8080"
     networks:
@@ -148,6 +150,7 @@ services:
       retries: 3
     volumes:
       - keycloak_data:/opt/keycloak/data
+      - ./keycloak-import:/opt/keycloak/data/import
 
 volumes:
   db_data:
