@@ -19,7 +19,7 @@ const checkJwt = () => {
         getToken: (req) => {
             console.log("req.headers.authorization", req.headers.authorization)
             console.log("req cookies auth token: ", req.cookies.auth_token)
-            if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+            if (req.headers.authorization) {
                 return req.headers.authorization.split(' ')[1];
             } else if (req.cookies && req.cookies.auth_token) {
                 return req.cookies.auth_token;

@@ -330,6 +330,7 @@ app.get('/auth/logout', (req, res) => {
 })
 
 app.get('/api/admin/users', requireRoles(['admin']), async (req, res) => {
+    console.log("test: ", req.headers.authorization)
     try {
         const kcAdminClient = await getKeycloakAdminClient()
         const users = await kcAdminClient.users.find()
